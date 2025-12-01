@@ -10,11 +10,46 @@
         <version>1.0.0-RC1</version>
     </parent>
 
+    <url>https://github.com/spring-ai-community/spring-ai-bedrock-agentcore</url>
+    <scm>
+        <url>https://github.com/spring-ai-community/spring-ai-bedrock-agentcore</url>
+        <connection>git://github.com/spring-ai-community/spring-ai-bedrock-agentcore.git</connection>
+        <developerConnection>git@github.com/spring-ai-community/spring-ai-bedrock-agentcore.git</developerConnection>
+    </scm>
+
     <artifactId>spring-ai-bedrock-agentcore-starter</artifactId>
     <packaging>jar</packaging>
 
     <name>Spring AI Bedrock AgentCore Starter</name>
     <description>Spring Boot starter for AWS Bedrock AgentCore runtime support</description>
+
+    <organization>
+        <name>Spring AI Community</name>
+        <url>https://github.com/spring-ai-community</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Maximilian Schellhorn</name>
+            <email>maschnetwork@pm.me</email>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>Github Issues</system>
+        <url>https://github.com/spring-ai-community/spring-ai-bedrock-agentcore/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Github Actions</system>
+        <url>https://github.com/spring-ai-community/spring-ai-bedrock-agentcore/actions</url>
+    </ciManagement>
 
     <dependencies>
         <dependency>
