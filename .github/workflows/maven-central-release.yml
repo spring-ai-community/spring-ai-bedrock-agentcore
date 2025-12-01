@@ -13,7 +13,7 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
       - name: Publish to Maven Central
-        run: mvn clean deploy -Prelease,javadoc
+        run: mvn -ntp clean deploy -Prelease,javadoc
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
