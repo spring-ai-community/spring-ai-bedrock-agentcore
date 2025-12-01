@@ -1,0 +1,28 @@
+### AgentCore SSE Streaming Invocations endpoint
+
+POST http://localhost:8080/invocations
+Content-Type: application/json
+Accept: text/event-stream
+
+{ "prompt" : "Tell me about Spring AI in detail." }
+
+
+### AgentCore SSE Streaming with Tool Use
+
+POST http://localhost:8080/invocations
+Content-Type: application/json
+Accept: text/event-stream
+
+{ "prompt" : "What is the current date and time?" }
+
+
+### AgentCore Runtime Ping endpoint
+
+GET http://localhost:8080/ping
+Content-Type: application/json
+
+
+### Actuator Health endpoint
+
+GET http://localhost:8080/actuator/health
+Content-Type: application/json

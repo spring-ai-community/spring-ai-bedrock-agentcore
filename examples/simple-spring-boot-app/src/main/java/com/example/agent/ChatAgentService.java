@@ -1,0 +1,130 @@
+package com.example.agent;
+
+import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springaicommunity.agentcore.annotation.AgentCoreInvocation;
+import org.springaicommunity.agentcore.context.AgentCoreContext;
+import org.springaicommunity.agentcore.context.AgentCoreHeaders;
+import org.springaicommunity.agentcore.ping.AgentCoreTaskTracker;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@Service
+public class ChatAgentService {
+
+    private AgentCoreTaskTracker agentCoreTaskTracker;
+    private final ExecutorService executor = Executors.newFixedThreadPool(3);
+    private static final Logger logger = LoggerFactory.getLogger(ChatAgentService.class);
+
+    public ChatAgentService(AgentCoreTaskTracker agentCoreTaskTracker){
+        this.agentCoreTaskTracker = agentCoreTaskTracker;
+    }
+
+    @AgentCoreInvocation
+    public String asyncTaskHandling(MySimpleRequest request, AgentCoreContext agentCoreContext) {
+        agentCoreTaskTracker.increment();
+        logger.info(agentCoreContext.getHeader(AgentCoreHeaders.SESSION_ID));
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(10000);
+                logger.info(agentCoreContext.getHeader(AgentCoreHeaders.SESSION_ID));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).whenComplete((r, ex) -> agentCoreTaskTracker.decrement());
+        return "Something immediate from async task trigger";
+    }
+
+    //**********************************************************************************************/
+    // Alternative method signatures (Note: Only 1 method can be annotated with @AgentCoreInvocation)
+    //**********************************************************************************************/
+
+    // Map as input and output arguments
+    public Map<String, Object> handleRequest(Map<String, Object> request) {
+        logger.info("Received flexible request: {}", request);
+
+        return Map.of(
+                "input", request,
+                "response", "Processed: " + request.get("message"),
+                "timestamp", System.currentTimeMillis(),
+                "type", "flexible"
+        );
+    }
+
+    // String with text/plain
+    public String handleUserPrompt(String prompt) {
+        if (prompt == null || prompt.trim().isEmpty()) {
+            return "Please provide a valid prompt.";
+        }
+        return "Hello! You said: \"" + prompt.trim() + "\". How can I help you today?";
+    }
+
+    // Customer Pojo in and out
+    public MyResultPojo handleUserPromptWithPojoResult(MyCustomPojo myMap) {
+        logger.info("Received invocation at annotated method...");
+        return new MyResultPojo("Something New Version 2", 1, "you ");
+    }
+
+    // Custom Pojo in - String out
+    public String handleUserPromptWithPojo(MyCustomPojo customPojo) {
+        return "Hello! You said: \"" + customPojo.prompt.trim() + "\". How can I help you today (from Pojo)?";
+    }
+
+    // Blocking to simulate work
+    public MyResultPojo handleBlockingPojo(MyCustomPojo myMap) {
+        logger.info("Received invocation at blocking method...");
+        try {
+            Thread.sleep(5000);
+            logger.info("Finished invocation at blocking method...");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return new MyResultPojo("Something New Version 3", 1, "you ");
+    }
+
+    public CompletableFuture<String> serverAsyncTaskHandling(MySimpleRequest request, AgentCoreContext agentCoreContext) {
+        logger.info(agentCoreContext.getHeader(AgentCoreHeaders.SESSION_ID));
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(10000);
+                logger.info(agentCoreContext.getHeader(AgentCoreHeaders.SESSION_ID));
+                return "async server result";
+            } catch (InterruptedException e) {
+                logger.error("Thread was interrupted: " + e.getMessage(), e);
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Thread was interrupted: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    public SseEmitter handleSseStream(MySimpleRequest request) {
+        SseEmitter emitter = new SseEmitter();
+        executor.submit(() -> {
+            try {
+                for (int i = 1; i <= 5; i++) {
+                    emitter.send("Message " + i + ": " + request.prompt());
+                    Thread.sleep(1000);
+                }
+                emitter.complete();
+            } catch (Exception e) {
+                emitter.completeWithError(e);
+            }
+        });
+        return emitter;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
+    }
+
+    public record MyCustomPojo(String something, Integer someNumber, String prompt){}
+    public record MyResultPojo(String something, Integer someNumber, String prompt){}
+    public record MySimpleRequest(String prompt){}
+}

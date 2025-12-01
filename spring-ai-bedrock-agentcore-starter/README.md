@@ -1,4 +1,4 @@
-# Spring AI Bedrock AgentCore
+# Spring AI Bedrock AgentCore Starter
 
 A Spring Boot starter that enables existing Spring Boot applications to conform to the AWS Bedrock AgentCore Runtime contract with minimal configuration.
 
@@ -116,9 +116,9 @@ The `/ping` endpoint provides intelligent health monitoring:
 ```
 - Integrates with Actuator health checks
 - Maps Actuator status to AgentCore format:
-    - `UP` → "Healthy" (HTTP 200)
-    - `DOWN` → "Unhealthy" (HTTP 503)
-    - Other → "Unknown" (HTTP 503)
+  - `UP` → "Healthy" (HTTP 200)
+  - `DOWN` → "Unhealthy" (HTTP 503)
+  - Other → "Unknown" (HTTP 503)
 - Tracks status change timestamps
 - Thread-safe concurrent access
 

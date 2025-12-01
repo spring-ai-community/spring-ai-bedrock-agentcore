@@ -1,0 +1,27 @@
+### Invocations with application/json
+
+POST http://localhost:8080/invocations
+Content-Type: application/json
+X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: something
+
+{ "prompt" : "Hi, how are you?"}
+
+### Invocations with text/plain
+
+POST http://localhost:8080/invocations
+Content-Type: text/plain
+X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: something
+
+"Simple prompt as string"
+
+
+### Ping endpoint
+
+GET http://localhost:8080/ping
+Content-Type: application/json
+
+
+### Actuator endpoint
+
+GET http://localhost:8080/actuator/health
+Content-Type: application/json
