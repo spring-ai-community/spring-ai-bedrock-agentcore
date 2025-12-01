@@ -22,27 +22,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AgentCoreInvocationExceptionTest {
 
-    @Test
-    void shouldCreateExceptionWithMessage() {
-        var exception = new AgentCoreInvocationException("Test message");
+	@Test
+	void shouldCreateExceptionWithMessage() {
+		var exception = new AgentCoreInvocationException("Test message");
 
-        assertThat(exception.getMessage()).isEqualTo("Test message");
-        assertThat(exception.getCause()).isNull();
-    }
+		assertThat(exception.getMessage()).isEqualTo("Test message");
+		assertThat(exception.getCause()).isNull();
+	}
 
-    @Test
-    void shouldCreateExceptionWithMessageAndCause() {
-        var cause = new RuntimeException("Root cause");
-        var exception = new AgentCoreInvocationException("Test message", cause);
+	@Test
+	void shouldCreateExceptionWithMessageAndCause() {
+		var cause = new RuntimeException("Root cause");
+		var exception = new AgentCoreInvocationException("Test message", cause);
 
-        assertThat(exception.getMessage()).isEqualTo("Test message");
-        assertThat(exception.getCause()).isEqualTo(cause);
-    }
+		assertThat(exception.getMessage()).isEqualTo("Test message");
+		assertThat(exception.getCause()).isEqualTo(cause);
+	}
 
-    @Test
-    void shouldExtendRuntimeException() {
-        var exception = new AgentCoreInvocationException("Test");
+	@Test
+	void shouldExtendRuntimeException() {
+		var exception = new AgentCoreInvocationException("Test");
 
-        assertThat(exception).isInstanceOf(RuntimeException.class);
-    }
+		assertThat(exception).isInstanceOf(RuntimeException.class);
+	}
+
 }

@@ -40,112 +40,110 @@ import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(
-    classes = EndToEndWebFluxIntegrationTest.FluxTestApp.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(classes = EndToEndWebFluxIntegrationTest.FluxTestApp.class,
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Disabled
 class EndToEndWebFluxIntegrationTest {
 
-    @LocalServerPort
-    private int port;
+	@LocalServerPort
+	private int port;
 
-    @Autowired
-    private WebTestClient webTestClient;
+	@Autowired
+	private WebTestClient webTestClient;
 
-    @Autowired
-    private AgentCoreTaskTracker agentCoreTaskTracker;
+	@Autowired
+	private AgentCoreTaskTracker agentCoreTaskTracker;
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class FluxTestApp {
-        @Service
-        public static class TestFluxAgentService {
-            @AgentCoreInvocation
-            public Flux<?> handlePrompt(TestRequest request) {
-                return switch (request.message()) {
-                    case "bad_request" -> Flux.error(new ResponseStatusException(HttpStatus.BAD_REQUEST));
-                    case "conflict" -> Flux.error(new ResponseStatusException(HttpStatus.CONFLICT));
-                    case "server_error" -> Flux.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
-                    case "pojo_stream" -> Flux.just(
-                            new TestResponse(1, "response1"),
-                            new TestResponse(2, "response2"),
-                            new TestResponse(3, "response3")
-                    ).delayElements(Duration.ofMillis(10));
-                    default -> Flux.just("Hello", "World", "Stream")
-                            .delayElements(Duration.ofMillis(10));
-                };
-            }
-        }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class FluxTestApp {
 
-    }
+		@Service
+		public static class TestFluxAgentService {
 
-    record TestResponse(int id, String message) { }
-    record TestRequest(String message) { }
+			@AgentCoreInvocation
+			public Flux<?> handlePrompt(TestRequest request) {
+				return switch (request.message()) {
+					case "bad_request" -> Flux.error(new ResponseStatusException(HttpStatus.BAD_REQUEST));
+					case "conflict" -> Flux.error(new ResponseStatusException(HttpStatus.CONFLICT));
+					case "server_error" -> Flux.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
+					case "pojo_stream" -> Flux.just(new TestResponse(1, "response1"), new TestResponse(2, "response2"),
+							new TestResponse(3, "response3"))
+						.delayElements(Duration.ofMillis(10));
+					default -> Flux.just("Hello", "World", "Stream").delayElements(Duration.ofMillis(10));
+				};
+			}
 
-    @Test
-    void shouldStreamFluxResponseAsSSE() {
-        var request = new TestRequest("test stream");
+		}
 
-        FluxExchangeResult<String> result = webTestClient.post()
-                .uri("http://localhost:" + port + "/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.TEXT_EVENT_STREAM)
-                .returnResult(String.class);
+	}
 
-        StepVerifier.create(result.getResponseBody())
-                .expectNext("Hello")
-                .expectNext("World")
-                .expectNext("Stream")
-                .verifyComplete();
+	record TestResponse(int id, String message) {
+	}
 
-        assertEquals(0, agentCoreTaskTracker.getCount());
-    }
+	record TestRequest(String message) {
+	}
 
-    @Test
-    void shouldStreamPojoResponseAsSSE() {
-        var request = new TestRequest("pojo_stream");
+	@Test
+	void shouldStreamFluxResponseAsSSE() {
+		var request = new TestRequest("test stream");
 
-        FluxExchangeResult<String> result = webTestClient.post()
-                .uri("http://localhost:" + port + "/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.TEXT_EVENT_STREAM)
-                .returnResult(String.class);
+		FluxExchangeResult<String> result = webTestClient.post()
+			.uri("http://localhost:" + port + "/invocations")
+			.contentType(MediaType.APPLICATION_JSON)
+			.bodyValue(request)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.contentType(MediaType.TEXT_EVENT_STREAM)
+			.returnResult(String.class);
 
-        StepVerifier.create(result.getResponseBody())
-                .expectNext("""
-                        {"id":1,"message":"response1"}""".trim())
-                .expectNext("""
-                        {"id":2,"message":"response2"}""".trim())
-                .expectNext("""
-                        {"id":3,"message":"response3"}""".trim())
-                .verifyComplete();
+		StepVerifier.create(result.getResponseBody())
+			.expectNext("Hello")
+			.expectNext("World")
+			.expectNext("Stream")
+			.verifyComplete();
 
-        assertEquals(0, agentCoreTaskTracker.getCount());
-    }
+		assertEquals(0, agentCoreTaskTracker.getCount());
+	}
 
-    @ParameterizedTest
-    @CsvSource({
-            "bad_request, 400",
-            "conflict, 409",
-            "server_error, 500"
-    })
-    void shouldReturnErrorStatusForExceptions(String prompt, int expectedStatus) {
-        var request = new TestRequest(prompt);
+	@Test
+	void shouldStreamPojoResponseAsSSE() {
+		var request = new TestRequest("pojo_stream");
 
-        webTestClient.post()
-                .uri("http://localhost:" + port + "/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isEqualTo(expectedStatus);
+		FluxExchangeResult<String> result = webTestClient.post()
+			.uri("http://localhost:" + port + "/invocations")
+			.contentType(MediaType.APPLICATION_JSON)
+			.bodyValue(request)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.contentType(MediaType.TEXT_EVENT_STREAM)
+			.returnResult(String.class);
 
-        assertEquals(0, agentCoreTaskTracker.getCount());
-    }
+		StepVerifier.create(result.getResponseBody()).expectNext("""
+				{"id":1,"message":"response1"}""".trim()).expectNext("""
+				{"id":2,"message":"response2"}""".trim()).expectNext("""
+				{"id":3,"message":"response3"}""".trim()).verifyComplete();
+
+		assertEquals(0, agentCoreTaskTracker.getCount());
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "bad_request, 400", "conflict, 409", "server_error, 500" })
+	void shouldReturnErrorStatusForExceptions(String prompt, int expectedStatus) {
+		var request = new TestRequest(prompt);
+
+		webTestClient.post()
+			.uri("http://localhost:" + port + "/invocations")
+			.contentType(MediaType.APPLICATION_JSON)
+			.bodyValue(request)
+			.exchange()
+			.expectStatus()
+			.isEqualTo(expectedStatus);
+
+		assertEquals(0, agentCoreTaskTracker.getCount());
+	}
 
 }

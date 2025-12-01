@@ -31,20 +31,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AgentCorePingController {
 
-    private final AgentCorePingService agentCorePingService;
+	private final AgentCorePingService agentCorePingService;
 
-    public AgentCorePingController(AgentCorePingService agentCorePingService) {
-        this.agentCorePingService = agentCorePingService;
-    }
+	public AgentCorePingController(AgentCorePingService agentCorePingService) {
+		this.agentCorePingService = agentCorePingService;
+	}
 
-    @GetMapping("/ping")
-    public ResponseEntity<Map<String, Object>> ping() {
-        var pingStatus = agentCorePingService.getPingStatus();
+	@GetMapping("/ping")
+	public ResponseEntity<Map<String, Object>> ping() {
+		var pingStatus = agentCorePingService.getPingStatus();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", pingStatus.status().toString());
-        response.put("time_of_last_update", pingStatus.timeOfLastUpdate());
+		Map<String, Object> response = new HashMap<>();
+		response.put("status", pingStatus.status().toString());
+		response.put("time_of_last_update", pingStatus.timeOfLastUpdate());
 
-        return ResponseEntity.status(pingStatus.httpStatus()).body(response);
-    }
+		return ResponseEntity.status(pingStatus.httpStatus()).body(response);
+	}
+
 }

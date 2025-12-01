@@ -19,32 +19,42 @@ package org.springaicommunity.agentcore.context;
 /**
  * Constants for well-known AgentCore HTTP headers.
  *
- * <p>This class provides constants for headers commonly used in Amazon Bedrock AgentCore
+ * <p>
+ * This class provides constants for headers commonly used in Amazon Bedrock AgentCore
  * requests, organized by functional groups for easy discovery and usage.
  */
 public final class AgentCoreHeaders {
 
-    // Core AgentCore Headers
-    public static final String SESSION_ID = "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id";
-    public static final String USER_ID = "X-Amzn-Bedrock-AgentCore-Runtime-User-Id";
-    public static final String CUSTOM_HEADER_PREFIX = "X-Amzn-Bedrock-AgentCore-Runtime-Custom-";
+	// Core AgentCore Headers
+	public static final String SESSION_ID = "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id";
 
-    // Authentication & Authorization
-    public static final String AUTHORIZATION = "Authorization";
-    public static final String WORKLOAD_ACCESS_TOKEN = "workloadaccesstoken";
-    public static final String WORKLOAD_ACCESS_TOKEN_RUNTIME = "x-amzn-bedrock-agentcore-runtime-workload-accesstoken";
-    public static final String GUEST_AUTH = "x-aws-guest-auth";
+	public static final String USER_ID = "X-Amzn-Bedrock-AgentCore-Runtime-User-Id";
 
-    // AWS Infrastructure
-    public static final String REQUEST_ID = "x-amzn-requestid";
-    public static final String TRACE_ID = "x-amzn-trace-id";
-    public static final String BAGGAGE = "baggage";
+	public static final String CUSTOM_HEADER_PREFIX = "X-Amzn-Bedrock-AgentCore-Runtime-Custom-";
 
-    // Proxy Information
-    public static final String PROXY_IP = "x-aws-proxy-ip";
-    public static final String PROXY_PORT = "x-aws-proxy-port";
+	// Authentication & Authorization
+	public static final String AUTHORIZATION = "Authorization";
 
-    private AgentCoreHeaders() {
-        // Prevent instantiation
-    }
+	public static final String WORKLOAD_ACCESS_TOKEN = "workloadaccesstoken";
+
+	public static final String WORKLOAD_ACCESS_TOKEN_RUNTIME = "x-amzn-bedrock-agentcore-runtime-workload-accesstoken";
+
+	public static final String GUEST_AUTH = "x-aws-guest-auth";
+
+	// AWS Infrastructure
+	public static final String REQUEST_ID = "x-amzn-requestid";
+
+	public static final String TRACE_ID = "x-amzn-trace-id";
+
+	public static final String BAGGAGE = "baggage";
+
+	// Proxy Information
+	public static final String PROXY_IP = "x-aws-proxy-ip";
+
+	public static final String PROXY_PORT = "x-aws-proxy-port";
+
+	private AgentCoreHeaders() {
+		// Prevent instantiation
+	}
+
 }

@@ -27,63 +27,64 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgentCoreContextTest {
 
-    @Test
-    void shouldReturnEmptyHeadersWhenNullProvided() {
-        var context = new AgentCoreContext(null);
-        var headers = context.getHeaders();
+	@Test
+	void shouldReturnEmptyHeadersWhenNullProvided() {
+		var context = new AgentCoreContext(null);
+		var headers = context.getHeaders();
 
-        assertNotNull(headers);
-        assertTrue(headers.isEmpty());
-    }
+		assertNotNull(headers);
+		assertTrue(headers.isEmpty());
+	}
 
-    @Test
-    void shouldReturnNullWithNullHeaderName() {
-        var context = new AgentCoreContext(new HttpHeaders());
-        var value = context.getHeader(null);
+	@Test
+	void shouldReturnNullWithNullHeaderName() {
+		var context = new AgentCoreContext(new HttpHeaders());
+		var value = context.getHeader(null);
 
-        assertNull(value);
-    }
+		assertNull(value);
+	}
 
-    @Test
-    void shouldReturnNullForNonExistentHeader() {
-        var context = new AgentCoreContext(new HttpHeaders());
-        var value = context.getHeader("non-existent-header");
+	@Test
+	void shouldReturnNullForNonExistentHeader() {
+		var context = new AgentCoreContext(new HttpHeaders());
+		var value = context.getHeader("non-existent-header");
 
-        assertNull(value);
-    }
+		assertNull(value);
+	}
 
-    @Test
-    void shouldGetHeadersCorrectly() {
-        var originalHeaders = new HttpHeaders();
-        originalHeaders.add("test-header", "test-value");
-        originalHeaders.add(AgentCoreHeaders.SESSION_ID, "session-123");
+	@Test
+	void shouldGetHeadersCorrectly() {
+		var originalHeaders = new HttpHeaders();
+		originalHeaders.add("test-header", "test-value");
+		originalHeaders.add(AgentCoreHeaders.SESSION_ID, "session-123");
 
-        var context = new AgentCoreContext(originalHeaders);
+		var context = new AgentCoreContext(originalHeaders);
 
-        var retrievedHeaders = context.getHeaders();
-        assertEquals("test-value", retrievedHeaders.getFirst("test-header"));
-        assertEquals("session-123", retrievedHeaders.getFirst(AgentCoreHeaders.SESSION_ID));
-    }
+		var retrievedHeaders = context.getHeaders();
+		assertEquals("test-value", retrievedHeaders.getFirst("test-header"));
+		assertEquals("session-123", retrievedHeaders.getFirst(AgentCoreHeaders.SESSION_ID));
+	}
 
-    @Test
-    void shouldGetHeaderCorrectly() {
-        var headers = new HttpHeaders();
-        headers.add(AgentCoreHeaders.SESSION_ID, "session-456");
-        headers.add(AgentCoreHeaders.REQUEST_ID, "req-789");
+	@Test
+	void shouldGetHeaderCorrectly() {
+		var headers = new HttpHeaders();
+		headers.add(AgentCoreHeaders.SESSION_ID, "session-456");
+		headers.add(AgentCoreHeaders.REQUEST_ID, "req-789");
 
-        var context = new AgentCoreContext(headers);
+		var context = new AgentCoreContext(headers);
 
-        assertEquals("session-456", context.getHeader(AgentCoreHeaders.SESSION_ID));
-        assertEquals("req-789", context.getHeader(AgentCoreHeaders.REQUEST_ID));
-        assertNull(context.getHeader("non-existent-header"));
-    }
+		assertEquals("session-456", context.getHeader(AgentCoreHeaders.SESSION_ID));
+		assertEquals("req-789", context.getHeader(AgentCoreHeaders.REQUEST_ID));
+		assertNull(context.getHeader("non-existent-header"));
+	}
 
-    @Test
-    void shouldHandleEmptyHeaders() {
-        var headers = new HttpHeaders();
-        var context = new AgentCoreContext(headers);
+	@Test
+	void shouldHandleEmptyHeaders() {
+		var headers = new HttpHeaders();
+		var context = new AgentCoreContext(headers);
 
-        assertNull(context.getHeader("test-header"));
-        assertTrue(context.getHeaders().isEmpty());
-    }
+		assertNull(context.getHeader("test-header"));
+		assertTrue(context.getHeaders().isEmpty());
+	}
+
 }

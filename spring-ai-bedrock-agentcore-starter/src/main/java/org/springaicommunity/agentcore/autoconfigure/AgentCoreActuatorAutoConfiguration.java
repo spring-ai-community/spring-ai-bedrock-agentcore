@@ -28,29 +28,31 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 
 /**
- * Auto-configuration for AgentCore Actuator integration.
- * Only loaded when Spring Boot Actuator is on the classpath.
+ * Auto-configuration for AgentCore Actuator integration. Only loaded when Spring Boot
+ * Actuator is on the classpath.
  */
 @AutoConfiguration
 @ConditionalOnClass(HealthEndpoint.class)
 public class AgentCoreActuatorAutoConfiguration {
 
-    /**
-     * Provides RequestCounter bean when not already available.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public AgentCoreTaskTracker agentCoreTaskTracker() {
-        return new AgentCoreTaskTracker();
-    }
+	/**
+	 * Provides RequestCounter bean when not already available.
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public AgentCoreTaskTracker agentCoreTaskTracker() {
+		return new AgentCoreTaskTracker();
+	}
 
-    /**
-     * Provides Actuator-based ping service when Spring Boot Actuator is available.
-     */
-    @Bean
-    @ConditionalOnBean(HealthEndpoint.class)
-    @ConditionalOnMissingBean(AgentCorePingService.class)
-    public AgentCorePingService actuatorAgentCorePingService(HealthEndpoint healthEndpoint, AgentCoreTaskTracker agentCoreTaskTracker) {
-        return new ActuatorAgentCorePingService(healthEndpoint, agentCoreTaskTracker);
-    }
+	/**
+	 * Provides Actuator-based ping service when Spring Boot Actuator is available.
+	 */
+	@Bean
+	@ConditionalOnBean(HealthEndpoint.class)
+	@ConditionalOnMissingBean(AgentCorePingService.class)
+	public AgentCorePingService actuatorAgentCorePingService(HealthEndpoint healthEndpoint,
+			AgentCoreTaskTracker agentCoreTaskTracker) {
+		return new ActuatorAgentCorePingService(healthEndpoint, agentCoreTaskTracker);
+	}
+
 }

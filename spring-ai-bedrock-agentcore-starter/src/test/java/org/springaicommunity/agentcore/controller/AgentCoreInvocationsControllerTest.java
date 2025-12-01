@@ -40,112 +40,115 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = {AgentCoreInvocationsController.class})
-@Import({AgentCoreAutoConfiguration.class, AgentCoreInvocationsControllerTest.TestConfig.class})
+@WebMvcTest(controllers = { AgentCoreInvocationsController.class })
+@Import({ AgentCoreAutoConfiguration.class, AgentCoreInvocationsControllerTest.TestConfig.class })
 class AgentCoreInvocationsControllerTest {
 
-    @SpringBootApplication
-    static class TestConfig { }
+	@SpringBootApplication
+	static class TestConfig {
 
-    @Autowired
-    private MockMvc mockMvc;
+	}
 
-    @MockBean
-    private AgentCoreMethodInvoker mockInvoker;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @MockBean
-    private AgentCoreTaskTracker mockTaskTracker;
+	@MockBean
+	private AgentCoreMethodInvoker mockInvoker;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+	@MockBean
+	private AgentCoreTaskTracker mockTaskTracker;
 
-    @Test
-    void shouldHandleStringInput() throws Exception {
-        when(mockInvoker.invokeAgentMethod(eq("hello"), any(HttpHeaders.class))).thenReturn("world");
+	@Autowired
+	private ObjectMapper objectMapper;
 
-        mockMvc.perform(post("/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("\"hello\""))
-                .andExpect(status().isOk())
-                .andExpect(content().string("world"));
-    }
+	@Test
+	void shouldHandleStringInput() throws Exception {
+		when(mockInvoker.invokeAgentMethod(eq("hello"), any(HttpHeaders.class))).thenReturn("world");
 
-    @Test
-    void shouldHandleObjectInput() throws Exception {
-        var input = new TestInput("test");
-        var output = new TestOutput("result");
+		mockMvc.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON).content("\"hello\""))
+			.andExpect(status().isOk())
+			.andExpect(content().string("world"));
+	}
 
-        when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(output);
+	@Test
+	void shouldHandleObjectInput() throws Exception {
+		var input = new TestInput("test");
+		var output = new TestOutput("result");
 
-        mockMvc.perform(post("/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(input)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.value").value("result"));
-    }
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(output);
 
-    @Test
-    void shouldHandleMapInput() throws Exception {
-        var inputMap = java.util.Map.of("key", "value", "number", 42);
-        var outputMap = java.util.Map.of("result", "processed", "input", inputMap);
+		mockMvc
+			.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(input)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.value").value("result"));
+	}
 
-        when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(outputMap);
+	@Test
+	void shouldHandleMapInput() throws Exception {
+		var inputMap = java.util.Map.of("key", "value", "number", 42);
+		var outputMap = java.util.Map.of("result", "processed", "input", inputMap);
 
-        mockMvc.perform(post("/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(inputMap)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result").value("processed"))
-                .andExpect(jsonPath("$.input.key").value("value"))
-                .andExpect(jsonPath("$.input.number").value(42));
-    }
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(outputMap);
 
-    @Test
-    void shouldHandleException() throws Exception {
-        when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class)))
-                .thenThrow(new AgentCoreInvocationException("Test error"));
+		mockMvc
+			.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(inputMap)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.result").value("processed"))
+			.andExpect(jsonPath("$.input.key").value("value"))
+			.andExpect(jsonPath("$.input.number").value(42));
+	}
 
-        mockMvc.perform(post("/invocations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{ }"))
-                .andExpect(status().isInternalServerError());
-    }
+	@Test
+	void shouldHandleException() throws Exception {
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class)))
+			.thenThrow(new AgentCoreInvocationException("Test error"));
 
-    static class TestInput {
-        private String data;
+		mockMvc.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON).content("{ }"))
+			.andExpect(status().isInternalServerError());
+	}
 
-        TestInput() {
-        }
+	static class TestInput {
 
-        TestInput(String data) {
-            this.data = data;
-        }
+		private String data;
 
-        public String getData() {
-            return data;
-        }
+		TestInput() {
+		}
 
-        public void setData(String data) {
-            this.data = data;
-        }
-    }
+		TestInput(String data) {
+			this.data = data;
+		}
 
-    static class TestOutput {
-        private String value;
+		public String getData() {
+			return data;
+		}
 
-        TestOutput() {
-        }
+		public void setData(String data) {
+			this.data = data;
+		}
 
-        TestOutput(String value) {
-            this.value = value;
-        }
+	}
 
-        public String getValue() {
-            return value;
-        }
+	static class TestOutput {
 
-        public void setValue(String value) {
-            this.value = value;
-        }
-    }
+		private String value;
+
+		TestOutput() {
+		}
+
+		TestOutput(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+	}
+
 }

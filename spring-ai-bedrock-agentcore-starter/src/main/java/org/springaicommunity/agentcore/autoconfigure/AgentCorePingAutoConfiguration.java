@@ -25,25 +25,27 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 
 /**
- * Auto-configuration for AgentCore ping services.
- * Provides fallback static ping service.
+ * Auto-configuration for AgentCore ping services. Provides fallback static ping service.
  */
 @AutoConfiguration
 public class AgentCorePingAutoConfiguration {
-    /**
-     * Provides RequestCounter bean when not already available.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public AgentCoreTaskTracker agentCoreTaskTracker() {
-        return new AgentCoreTaskTracker();
-    }
-    /**
-     * Provides a static ping service as fallback when no other ping service is available.
-     */
-    @Bean
-    @ConditionalOnMissingBean(AgentCorePingService.class)
-    public AgentCorePingService staticAgentCorePingService(AgentCoreTaskTracker agentCoreTaskTracker) {
-        return new StaticAgentCorePingService(agentCoreTaskTracker);
-    }
+
+	/**
+	 * Provides RequestCounter bean when not already available.
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public AgentCoreTaskTracker agentCoreTaskTracker() {
+		return new AgentCoreTaskTracker();
+	}
+
+	/**
+	 * Provides a static ping service as fallback when no other ping service is available.
+	 */
+	@Bean
+	@ConditionalOnMissingBean(AgentCorePingService.class)
+	public AgentCorePingService staticAgentCorePingService(AgentCoreTaskTracker agentCoreTaskTracker) {
+		return new StaticAgentCorePingService(agentCoreTaskTracker);
+	}
+
 }

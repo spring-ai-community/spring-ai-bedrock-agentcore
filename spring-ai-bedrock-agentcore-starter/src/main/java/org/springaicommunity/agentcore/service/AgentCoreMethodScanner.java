@@ -23,25 +23,26 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Lazy;
 
 /**
- * BeanPostProcessor that scans for @AgentCoreInvocation annotated methods
- * and registers them with the AgentCoreMethodRegistry.
+ * BeanPostProcessor that scans for @AgentCoreInvocation annotated methods and registers
+ * them with the AgentCoreMethodRegistry.
  */
 public class AgentCoreMethodScanner implements BeanPostProcessor {
 
-    private final AgentCoreMethodRegistry registry;
+	private final AgentCoreMethodRegistry registry;
 
-    public AgentCoreMethodScanner(@Lazy AgentCoreMethodRegistry registry) {
-        this.registry = registry;
-    }
+	public AgentCoreMethodScanner(@Lazy AgentCoreMethodRegistry registry) {
+		this.registry = registry;
+	}
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        var methods = bean.getClass().getDeclaredMethods();
-        for (var method : methods) {
-            if (method.isAnnotationPresent(AgentCoreInvocation.class)) {
-                registry.registerMethod(bean, method);
-            }
-        }
-        return bean;
-    }
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+		var methods = bean.getClass().getDeclaredMethods();
+		for (var method : methods) {
+			if (method.isAnnotationPresent(AgentCoreInvocation.class)) {
+				registry.registerMethod(bean, method);
+			}
+		}
+		return bean;
+	}
+
 }

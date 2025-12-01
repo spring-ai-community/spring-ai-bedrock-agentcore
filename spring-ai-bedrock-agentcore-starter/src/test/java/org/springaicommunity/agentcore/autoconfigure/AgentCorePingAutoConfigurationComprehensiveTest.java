@@ -39,113 +39,102 @@ import static org.mockito.Mockito.when;
  */
 class AgentCorePingAutoConfigurationComprehensiveTest {
 
-    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(
-                    AgentCorePingAutoConfiguration.class,
-                    AgentCoreActuatorAutoConfiguration.class
-            ));
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner().withConfiguration(
+			AutoConfigurations.of(AgentCorePingAutoConfiguration.class, AgentCoreActuatorAutoConfiguration.class));
 
-    @Test
-    void shouldAutoConfigureStaticPingServiceWhenActuatorNotPresent() {
-        contextRunner.run(context -> {
-            assertThat(context).hasSingleBean(AgentCorePingService.class);
-            assertThat(context).getBean(AgentCorePingService.class)
-                    .isInstanceOf(StaticAgentCorePingService.class);
-        });
-    }
+	@Test
+	void shouldAutoConfigureStaticPingServiceWhenActuatorNotPresent() {
+		contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(AgentCorePingService.class);
+			assertThat(context).getBean(AgentCorePingService.class).isInstanceOf(StaticAgentCorePingService.class);
+		});
+	}
 
-    @Test
-    void shouldAutoConfigureActuatorPingServiceWhenActuatorPresent() {
-        contextRunner
-                .withUserConfiguration(ActuatorConfiguration.class)
-                .run(context -> {
-                    assertThat(context).hasSingleBean(AgentCorePingService.class);
-                    assertThat(context).getBean(AgentCorePingService.class)
-                            .isInstanceOf(ActuatorAgentCorePingService.class);
-                });
-    }
+	@Test
+	void shouldAutoConfigureActuatorPingServiceWhenActuatorPresent() {
+		contextRunner.withUserConfiguration(ActuatorConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(AgentCorePingService.class);
+			assertThat(context).getBean(AgentCorePingService.class).isInstanceOf(ActuatorAgentCorePingService.class);
+		});
+	}
 
-    @Test
-    void shouldNotOverrideCustomPingService() {
-        contextRunner
-                .withUserConfiguration(CustomPingServiceConfiguration.class)
-                .run(context -> {
-                    assertThat(context).hasSingleBean(AgentCorePingService.class);
-                    assertThat(context).getBean(AgentCorePingService.class)
-                            .isInstanceOf(CustomPingService.class);
-                });
-    }
+	@Test
+	void shouldNotOverrideCustomPingService() {
+		contextRunner.withUserConfiguration(CustomPingServiceConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(AgentCorePingService.class);
+			assertThat(context).getBean(AgentCorePingService.class).isInstanceOf(CustomPingService.class);
+		});
+	}
 
-    @Test
-    void shouldReturnHealthyResponseFromStaticService() {
-        contextRunner.run(context -> {
-            var pingService = context.getBean(AgentCorePingService.class);
-            var response = pingService.getPingStatus();
+	@Test
+	void shouldReturnHealthyResponseFromStaticService() {
+		contextRunner.run(context -> {
+			var pingService = context.getBean(AgentCorePingService.class);
+			var response = pingService.getPingStatus();
 
-            assertThat(response.status()).isEqualTo(PingStatus.HEALTHY);
-            assertThat(response.timeOfLastUpdate()).isPositive();
-        });
-    }
+			assertThat(response.status()).isEqualTo(PingStatus.HEALTHY);
+			assertThat(response.timeOfLastUpdate()).isPositive();
+		});
+	}
 
-    @Test
-    void shouldReturnHealthyResponseFromActuatorService() {
-        contextRunner
-                .withUserConfiguration(ActuatorConfiguration.class)
-                .run(context -> {
-                    var pingService = context.getBean(AgentCorePingService.class);
-                    var response = pingService.getPingStatus();
+	@Test
+	void shouldReturnHealthyResponseFromActuatorService() {
+		contextRunner.withUserConfiguration(ActuatorConfiguration.class).run(context -> {
+			var pingService = context.getBean(AgentCorePingService.class);
+			var response = pingService.getPingStatus();
 
-                    assertThat(response.status()).isEqualTo(PingStatus.HEALTHY);
-                    assertThat(response.timeOfLastUpdate()).isPositive();
-                });
-    }
+			assertThat(response.status()).isEqualTo(PingStatus.HEALTHY);
+			assertThat(response.timeOfLastUpdate()).isPositive();
+		});
+	}
 
-    @Test
-    void shouldHaveCorrectBeanNames() {
-        contextRunner.run(context -> {
-            assertThat(context).hasBean("staticAgentCorePingService");
-            assertThat(context).doesNotHaveBean("actuatorAgentCorePingService");
-        });
-    }
+	@Test
+	void shouldHaveCorrectBeanNames() {
+		contextRunner.run(context -> {
+			assertThat(context).hasBean("staticAgentCorePingService");
+			assertThat(context).doesNotHaveBean("actuatorAgentCorePingService");
+		});
+	}
 
-    @Test
-    void shouldHaveCorrectBeanNamesWithActuator() {
-        contextRunner
-                .withUserConfiguration(ActuatorConfiguration.class)
-                .run(context -> {
-                    assertThat(context).hasBean("actuatorAgentCorePingService");
-                    assertThat(context).doesNotHaveBean("staticAgentCorePingService");
-                });
-    }
+	@Test
+	void shouldHaveCorrectBeanNamesWithActuator() {
+		contextRunner.withUserConfiguration(ActuatorConfiguration.class).run(context -> {
+			assertThat(context).hasBean("actuatorAgentCorePingService");
+			assertThat(context).doesNotHaveBean("staticAgentCorePingService");
+		});
+	}
 
-    // Test configurations
-    @Configuration
-    static class ActuatorConfiguration {
-        @Bean
-        public HealthEndpoint healthEndpoint() {
-            var endpoint = mock(HealthEndpoint.class);
-            when(endpoint.health()).thenReturn(Health.up().build());
-            return endpoint;
-        }
-    }
+	// Test configurations
+	@Configuration
+	static class ActuatorConfiguration {
 
-    @Configuration
-    static class CustomPingServiceConfiguration {
-        @Bean
-        public AgentCorePingService customPingService() {
-            return new CustomPingService();
-        }
-    }
+		@Bean
+		public HealthEndpoint healthEndpoint() {
+			var endpoint = mock(HealthEndpoint.class);
+			when(endpoint.health()).thenReturn(Health.up().build());
+			return endpoint;
+		}
 
-    // Custom implementation for testing
-    static class CustomPingService implements AgentCorePingService {
-        @Override
-        public AgentCorePingResponse getPingStatus() {
-            return new AgentCorePingResponse(
-                    PingStatus.HEALTHY,
-                    org.springframework.http.HttpStatus.OK,
-                    999L
-            );
-        }
-    }
+	}
+
+	@Configuration
+	static class CustomPingServiceConfiguration {
+
+		@Bean
+		public AgentCorePingService customPingService() {
+			return new CustomPingService();
+		}
+
+	}
+
+	// Custom implementation for testing
+	static class CustomPingService implements AgentCorePingService {
+
+		@Override
+		public AgentCorePingResponse getPingStatus() {
+			return new AgentCorePingResponse(PingStatus.HEALTHY, org.springframework.http.HttpStatus.OK, 999L);
+		}
+
+	}
+
 }

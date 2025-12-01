@@ -35,49 +35,48 @@ import org.springframework.stereotype.Service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-    classes = EndToEndContextIntegrationTest.ContextTestApp.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(classes = EndToEndContextIntegrationTest.ContextTestApp.class,
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EndToEndContextIntegrationTest {
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class ContextTestApp {
-        @Service
-        public static class TestAgentService {
-            @AgentCoreInvocation
-            public String handleWithContext(Map<String, String> request, AgentCoreContext context) {
-                String message = request.get("message");
-                String sessionId = context.getHeader(AgentCoreHeaders.SESSION_ID);
-                String customHeader = context.getHeader("X-Custom-Header");
-                return "Message: " + message + ", Session: " + sessionId + ", Custom: " + customHeader;
-            }
-        }
-    }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class ContextTestApp {
 
-    @LocalServerPort
-    private int port;
+		@Service
+		public static class TestAgentService {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+			@AgentCoreInvocation
+			public String handleWithContext(Map<String, String> request, AgentCoreContext context) {
+				String message = request.get("message");
+				String sessionId = context.getHeader(AgentCoreHeaders.SESSION_ID);
+				String customHeader = context.getHeader("X-Custom-Header");
+				return "Message: " + message + ", Session: " + sessionId + ", Custom: " + customHeader;
+			}
 
-    @Test
-    void shouldInjectContextWithHeaders() {
-        var request = Map.of("message", "Hello Context");
+		}
 
-        var headers = new HttpHeaders();
-        headers.set(AgentCoreHeaders.SESSION_ID, "session-123");
-        headers.set("X-Custom-Header", "custom-value");
+	}
 
-        var entity = new HttpEntity<>(request, headers);
+	@LocalServerPort
+	private int port;
 
-        var response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/invocations",
-            entity,
-            String.class
-        );
+	@Autowired
+	private TestRestTemplate restTemplate;
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo("Message: Hello Context, Session: session-123, Custom: custom-value");
-    }
+	@Test
+	void shouldInjectContextWithHeaders() {
+		var request = Map.of("message", "Hello Context");
+
+		var headers = new HttpHeaders();
+		headers.set(AgentCoreHeaders.SESSION_ID, "session-123");
+		headers.set("X-Custom-Header", "custom-value");
+
+		var entity = new HttpEntity<>(request, headers);
+
+		var response = restTemplate.postForEntity("http://localhost:" + port + "/invocations", entity, String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("Message: Hello Context, Session: session-123, Custom: custom-value");
+	}
+
 }

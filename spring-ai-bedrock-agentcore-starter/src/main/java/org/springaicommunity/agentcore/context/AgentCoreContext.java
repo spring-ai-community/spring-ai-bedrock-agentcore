@@ -21,13 +21,14 @@ import org.springframework.http.HttpHeaders;
 /**
  * Context object containing HTTP headers from AgentCore invocation requests.
  *
- * <p>This class provides read-only access to HTTP headers passed to the AgentCore
- * {@code /invocations} endpoint. It can be injected as a method parameter
- * in {@code @AgentCoreInvocation} methods.
+ * <p>
+ * This class provides read-only access to HTTP headers passed to the AgentCore
+ * {@code /invocations} endpoint. It can be injected as a method parameter in
+ * {@code @AgentCoreInvocation} methods.
  *
- * <p>Usage example:
- * <pre>{@code
- * @AgentCoreInvocation
+ * <p>
+ * Usage example: <pre>{@code
+ * &#64;AgentCoreInvocation
  * public String handleRequest(String prompt, AgentCoreContext context) {
  *     String sessionId = context.getHeader(AgentCoreHeaders.SESSION_ID);
  *     HttpHeaders allHeaders = context.getHeaders();
@@ -37,36 +38,34 @@ import org.springframework.http.HttpHeaders;
  */
 public class AgentCoreContext {
 
-    private final HttpHeaders headers;
+	private final HttpHeaders headers;
 
-    /**
-     * Creates a new AgentCoreContext with the provided headers.
-     *
-     * @param headers the HTTP headers from the request
-     */
-    public AgentCoreContext(HttpHeaders headers) {
-        this.headers = headers != null ? headers : new HttpHeaders();
-    }
+	/**
+	 * Creates a new AgentCoreContext with the provided headers.
+	 * @param headers the HTTP headers from the request
+	 */
+	public AgentCoreContext(HttpHeaders headers) {
+		this.headers = headers != null ? headers : new HttpHeaders();
+	}
 
-    /**
-     * Gets all HTTP headers from the AgentCore request as a read-only view.
-     *
-     * @return the HTTP headers (read-only)
-     */
-    public HttpHeaders getHeaders() {
-        return HttpHeaders.readOnlyHttpHeaders(headers);
-    }
+	/**
+	 * Gets all HTTP headers from the AgentCore request as a read-only view.
+	 * @return the HTTP headers (read-only)
+	 */
+	public HttpHeaders getHeaders() {
+		return HttpHeaders.readOnlyHttpHeaders(headers);
+	}
 
-    /**
-     * Gets the value of a specific HTTP header from the AgentCore request.
-     *
-     * @param headerName the name of the header to retrieve
-     * @return the header value, or {@code null} if the header is not found
-     */
-    public String getHeader(String headerName) {
-        if (headerName == null) {
-            return null;
-        }
-        return headers.getFirst(headerName);
-    }
+	/**
+	 * Gets the value of a specific HTTP header from the AgentCore request.
+	 * @param headerName the name of the header to retrieve
+	 * @return the header value, or {@code null} if the header is not found
+	 */
+	public String getHeader(String headerName) {
+		if (headerName == null) {
+			return null;
+		}
+		return headers.getFirst(headerName);
+	}
+
 }

@@ -31,56 +31,49 @@ import org.springframework.stereotype.Service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-    classes = AgentCoreIntegrationTest.TestApp.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(classes = AgentCoreIntegrationTest.TestApp.class,
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AgentCoreIntegrationTest {
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class TestApp {
-        @Service
-        public static class TestAgentService {
-            @AgentCoreInvocation
-            public Map<String, Object> handleRequest(Map<String, Object> request) {
-                return Map.of(
-                    "response", "Integration: " + request.get("message"),
-                    "status", "success"
-                );
-            }
-        }
-    }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class TestApp {
 
-    @LocalServerPort
-    private int port;
+		@Service
+		public static class TestAgentService {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+			@AgentCoreInvocation
+			public Map<String, Object> handleRequest(Map<String, Object> request) {
+				return Map.of("response", "Integration: " + request.get("message"), "status", "success");
+			}
 
-    @Test
-    void shouldHandleInvocationsEndpoint() {
-        var request = Map.of("message", "Hello World");
+		}
 
-        var response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/invocations",
-            request,
-            Map.class
-        );
+	}
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsEntry("response", "Integration: Hello World");
-        assertThat(response.getBody()).containsEntry("status", "success");
-    }
+	@LocalServerPort
+	private int port;
 
-    @Test
-    void shouldHandlePingEndpoint() {
-        var response = restTemplate.getForEntity(
-            "http://localhost:" + port + "/ping",
-            Map.class
-        );
+	@Autowired
+	private TestRestTemplate restTemplate;
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsEntry("status", "Healthy");
-        assertThat(response.getBody()).containsKey("time_of_last_update");
-    }
+	@Test
+	void shouldHandleInvocationsEndpoint() {
+		var request = Map.of("message", "Hello World");
+
+		var response = restTemplate.postForEntity("http://localhost:" + port + "/invocations", request, Map.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).containsEntry("response", "Integration: Hello World");
+		assertThat(response.getBody()).containsEntry("status", "success");
+	}
+
+	@Test
+	void shouldHandlePingEndpoint() {
+		var response = restTemplate.getForEntity("http://localhost:" + port + "/ping", Map.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).containsEntry("status", "Healthy");
+		assertThat(response.getBody()).containsKey("time_of_last_update");
+	}
+
 }

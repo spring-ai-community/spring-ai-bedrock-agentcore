@@ -26,11 +26,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /**
- * Static implementation of AgentCorePingService that provides fallback behavior
- * when Spring Boot Actuator is not present on the classpath.
+ * Static implementation of AgentCorePingService that provides fallback behavior when
+ * Spring Boot Actuator is not present on the classpath.
  *
- * <p>This service always returns a "Healthy" status with HTTP 200, maintaining
- * backward compatibility with the original AgentCore ping behavior.</p>
+ * <p>
+ * This service always returns a "Healthy" status with HTTP 200, maintaining backward
+ * compatibility with the original AgentCore ping behavior.
+ * </p>
  *
  * @since 1.0.0
  */
@@ -38,34 +40,36 @@ import org.springframework.stereotype.Service;
 @ConditionalOnMissingClass("org.springframework.boot.actuate.health.HealthEndpoint")
 public class StaticAgentCorePingService implements AgentCorePingService {
 
-    private final AgentCoreTaskTracker agentCoreTaskTracker;
-    private final AtomicReference<AgentCorePingResponse> cachedResponse = new AtomicReference<>();
+	private final AgentCoreTaskTracker agentCoreTaskTracker;
 
-    public StaticAgentCorePingService(AgentCoreTaskTracker agentCoreTaskTracker) {
-        this.agentCoreTaskTracker = agentCoreTaskTracker;
-    }
+	private final AtomicReference<AgentCorePingResponse> cachedResponse = new AtomicReference<>();
 
-    @Override
-    public AgentCorePingResponse getPingStatus() {
-        try {
-            if (agentCoreTaskTracker.getCount() > 0) {
-                return updateCachedResponse(PingStatus.HEALTHY_BUSY, HttpStatus.OK);
-            }
-            else  {
-                return updateCachedResponse(PingStatus.HEALTHY, HttpStatus.OK);
-            }
-        }
-        catch (Exception e) {
-            return updateCachedResponse(PingStatus.UNHEALTHY, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+	public StaticAgentCorePingService(AgentCoreTaskTracker agentCoreTaskTracker) {
+		this.agentCoreTaskTracker = agentCoreTaskTracker;
+	}
 
-    private AgentCorePingResponse updateCachedResponse(PingStatus status, HttpStatus httpStatus) {
-        return cachedResponse.updateAndGet(current -> {
-            if (current == null || !current.status().equals(status)) {
-                return new AgentCorePingResponse(status, httpStatus, System.currentTimeMillis() / 1000);
-            }
-            return current;
-        });
-    }
+	@Override
+	public AgentCorePingResponse getPingStatus() {
+		try {
+			if (agentCoreTaskTracker.getCount() > 0) {
+				return updateCachedResponse(PingStatus.HEALTHY_BUSY, HttpStatus.OK);
+			}
+			else {
+				return updateCachedResponse(PingStatus.HEALTHY, HttpStatus.OK);
+			}
+		}
+		catch (Exception e) {
+			return updateCachedResponse(PingStatus.UNHEALTHY, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private AgentCorePingResponse updateCachedResponse(PingStatus status, HttpStatus httpStatus) {
+		return cachedResponse.updateAndGet(current -> {
+			if (current == null || !current.status().equals(status)) {
+				return new AgentCorePingResponse(status, httpStatus, System.currentTimeMillis() / 1000);
+			}
+			return current;
+		});
+	}
+
 }

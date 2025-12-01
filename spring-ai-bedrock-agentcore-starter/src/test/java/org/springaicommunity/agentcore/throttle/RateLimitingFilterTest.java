@@ -30,104 +30,106 @@ import org.springframework.web.client.RestTemplate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "agentcore.throttle.invocations-limit=2",
-        "agentcore.throttle.ping-limit=3"
-    })
+		properties = { "agentcore.throttle.invocations-limit=2", "agentcore.throttle.ping-limit=3" })
 class RateLimitingFilterTest {
 
-    @LocalServerPort
-    private int port;
+	@LocalServerPort
+	private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+	private final RestTemplate restTemplate = new RestTemplate();
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class ContextTestApp {
-        @Service
-        public static class TestAgentService {
-            @AgentCoreInvocation
-            public String handleWithContext(String request) {
-                return "Message: " + request;
-            }
-        }
-    }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class ContextTestApp {
 
-    @Test
-    void shouldThrottleInvocationsEndpoint() {
-        String url = "http://localhost:" + port + "/invocations";
+		@Service
+		public static class TestAgentService {
 
-        // First two requests should succeed
-        ResponseEntity<String> response1 = restTemplate.postForEntity(url, "test1", String.class);
-        assertEquals(HttpStatus.OK, response1.getStatusCode());
+			@AgentCoreInvocation
+			public String handleWithContext(String request) {
+				return "Message: " + request;
+			}
 
-        ResponseEntity<String> response2 = restTemplate.postForEntity(url, "test2", String.class);
-        assertEquals(HttpStatus.OK, response2.getStatusCode());
+		}
 
-        // Third request should be throttled
-        try {
-            ResponseEntity<String> response3 = restTemplate.postForEntity(url, "test3", String.class);
-            assertEquals(HttpStatus.TOO_MANY_REQUESTS, response3.getStatusCode());
-        }
+	}
 
-        catch (org.springframework.web.client.HttpClientErrorException e) {
-            assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.getStatusCode());
-        }
-    }
+	@Test
+	void shouldThrottleInvocationsEndpoint() {
+		String url = "http://localhost:" + port + "/invocations";
 
-    @Test
-    void shouldThrottlePingEndpoint() {
-        String url = "http://localhost:" + port + "/ping";
+		// First two requests should succeed
+		ResponseEntity<String> response1 = restTemplate.postForEntity(url, "test1", String.class);
+		assertEquals(HttpStatus.OK, response1.getStatusCode());
 
-        // First three requests should succeed
-        for (int i = 0; i < 3; i++) {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-        }
+		ResponseEntity<String> response2 = restTemplate.postForEntity(url, "test2", String.class);
+		assertEquals(HttpStatus.OK, response2.getStatusCode());
 
-        // Fourth request should be throttled
-        try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
-        }
+		// Third request should be throttled
+		try {
+			ResponseEntity<String> response3 = restTemplate.postForEntity(url, "test3", String.class);
+			assertEquals(HttpStatus.TOO_MANY_REQUESTS, response3.getStatusCode());
+		}
 
-        catch (org.springframework.web.client.HttpClientErrorException e) {
-            assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.getStatusCode());
-        }
-    }
+		catch (org.springframework.web.client.HttpClientErrorException e) {
+			assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.getStatusCode());
+		}
+	}
 
-    @Test
-    void shouldUseXForwardedForHeaderForClientIdentification() {
-        String url = "http://localhost:" + port + "/invocations";
+	@Test
+	void shouldThrottlePingEndpoint() {
+		String url = "http://localhost:" + port + "/ping";
 
-        // Create RestTemplate with interceptor to add X-Forwarded-For header
-        RestTemplate clientWithHeader = new RestTemplate();
-        clientWithHeader.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("X-Forwarded-For", "192.168.1.100");
-            return execution.execute(request, body);
-        });
+		// First three requests should succeed
+		for (int i = 0; i < 3; i++) {
+			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+		}
 
-        // First two requests with X-Forwarded-For should succeed
-        for (int i = 0; i < 2; i++) {
-            ResponseEntity<String> response = clientWithHeader.postForEntity(url, "test", String.class);
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-        }
+		// Fourth request should be throttled
+		try {
+			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+			assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
+		}
 
-        // Third request with same X-Forwarded-For should be throttled
-        try {
-            clientWithHeader.postForEntity(url, "test", String.class);
-        }
-        catch (org.springframework.web.client.HttpClientErrorException e) {
-            assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.getStatusCode());
-        }
+		catch (org.springframework.web.client.HttpClientErrorException e) {
+			assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.getStatusCode());
+		}
+	}
 
-        // Request from different IP (different X-Forwarded-For) should succeed
-        RestTemplate clientWithDifferentIp = new RestTemplate();
-        clientWithDifferentIp.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("X-Forwarded-For", "192.168.1.200");
-            return execution.execute(request, body);
-        });
+	@Test
+	void shouldUseXForwardedForHeaderForClientIdentification() {
+		String url = "http://localhost:" + port + "/invocations";
 
-        ResponseEntity<String> response = clientWithDifferentIp.postForEntity(url, "test", String.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+		// Create RestTemplate with interceptor to add X-Forwarded-For header
+		RestTemplate clientWithHeader = new RestTemplate();
+		clientWithHeader.getInterceptors().add((request, body, execution) -> {
+			request.getHeaders().add("X-Forwarded-For", "192.168.1.100");
+			return execution.execute(request, body);
+		});
+
+		// First two requests with X-Forwarded-For should succeed
+		for (int i = 0; i < 2; i++) {
+			ResponseEntity<String> response = clientWithHeader.postForEntity(url, "test", String.class);
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+		}
+
+		// Third request with same X-Forwarded-For should be throttled
+		try {
+			clientWithHeader.postForEntity(url, "test", String.class);
+		}
+		catch (org.springframework.web.client.HttpClientErrorException e) {
+			assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.getStatusCode());
+		}
+
+		// Request from different IP (different X-Forwarded-For) should succeed
+		RestTemplate clientWithDifferentIp = new RestTemplate();
+		clientWithDifferentIp.getInterceptors().add((request, body, execution) -> {
+			request.getHeaders().add("X-Forwarded-For", "192.168.1.200");
+			return execution.execute(request, body);
+		});
+
+		ResponseEntity<String> response = clientWithDifferentIp.postForEntity(url, "test", String.class);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+	}
+
 }

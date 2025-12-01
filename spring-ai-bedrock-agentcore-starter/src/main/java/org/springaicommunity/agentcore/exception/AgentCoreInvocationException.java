@@ -17,16 +17,17 @@
 package org.springaicommunity.agentcore.exception;
 
 /**
- * Exception thrown when there are issues with AgentCore method invocation,
- * such as multiple methods annotated with @AgentCoreInvocation or unsupported method signatures.
+ * Exception thrown when there are issues with AgentCore method invocation, such as
+ * multiple methods annotated with @AgentCoreInvocation or unsupported method signatures.
  */
 public class AgentCoreInvocationException extends RuntimeException {
 
-    public AgentCoreInvocationException(String message) {
-        super(message);
-    }
+	public AgentCoreInvocationException(String message) {
+		super(message);
+	}
 
-    public AgentCoreInvocationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public AgentCoreInvocationException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
 }

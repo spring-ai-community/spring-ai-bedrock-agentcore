@@ -21,20 +21,21 @@ import org.springaicommunity.agentcore.model.AgentCorePingResponse;
 /**
  * Service interface for AgentCore ping functionality.
  *
- * <p>This service provides health status information in the format required by
- * the AWS Bedrock AgentCore Runtime contract. Implementations can provide
- * static health status or integrate with Spring Boot Actuator for dynamic
- * health checking.</p>
+ * <p>
+ * This service provides health status information in the format required by the AWS
+ * Bedrock AgentCore Runtime contract. Implementations can provide static health status or
+ * integrate with Spring Boot Actuator for dynamic health checking.
+ * </p>
  *
  * @since 1.0.0
  */
 public interface AgentCorePingService {
 
-    /**
-     * Gets the current ping status for the AgentCore application.
-     *
-     * @return the current ping response containing status, HTTP status code,
-     *         and timestamp of last status change
-     */
-    AgentCorePingResponse getPingStatus();
+	/**
+	 * Gets the current ping status for the AgentCore application.
+	 * @return the current ping response containing status, HTTP status code, and
+	 * timestamp of last status change
+	 */
+	AgentCorePingResponse getPingStatus();
+
 }

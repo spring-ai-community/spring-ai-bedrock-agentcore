@@ -21,13 +21,15 @@ import org.springframework.http.HttpStatus;
 /**
  * Response record for AgentCore ping status.
  *
- * <p>Contains the health status information in the format required by the
- * AWS Bedrock AgentCore Runtime contract.</p>
+ * <p>
+ * Contains the health status information in the format required by the AWS Bedrock
+ * AgentCore Runtime contract.
+ * </p>
  *
  * @param status the current status enum (HEALTHY, HEALTHY_BUSY, UNHEALTHY)
  * @param httpStatus the HTTP status code to return with the response
  * @param timeOfLastUpdate timestamp in seconds when the status last changed
- *
  * @since 1.0.0
  */
-public record AgentCorePingResponse(PingStatus status, HttpStatus httpStatus, long timeOfLastUpdate) { }
+public record AgentCorePingResponse(PingStatus status, HttpStatus httpStatus, long timeOfLastUpdate) {
+}

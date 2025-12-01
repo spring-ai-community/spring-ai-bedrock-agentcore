@@ -35,46 +35,52 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = {AgentCorePingController.class})
-@Import({AgentCoreAutoConfiguration.class, AgentCorePingControllerTest.TestConfig.class})
+@WebMvcTest(controllers = { AgentCorePingController.class })
+@Import({ AgentCoreAutoConfiguration.class, AgentCorePingControllerTest.TestConfig.class })
 class AgentCorePingControllerTest {
 
-    @SpringBootApplication
-    static class TestConfig { }
+	@SpringBootApplication
+	static class TestConfig {
 
-    @Autowired
-    private MockMvc mockMvc;
+	}
 
-    @MockBean
-    private AgentCorePingService mockPingService;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @Test
-    void shouldReturnHealthyStatus() throws Exception {
-        when(mockPingService.getPingStatus()).thenReturn(new AgentCorePingResponse(PingStatus.HEALTHY, HttpStatus.OK, 1234567890L));
+	@MockBean
+	private AgentCorePingService mockPingService;
 
-        mockMvc.perform(get("/ping"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("Healthy"))
-                .andExpect(jsonPath("$.time_of_last_update").value(1234567890L));
-    }
+	@Test
+	void shouldReturnHealthyStatus() throws Exception {
+		when(mockPingService.getPingStatus())
+			.thenReturn(new AgentCorePingResponse(PingStatus.HEALTHY, HttpStatus.OK, 1234567890L));
 
-    @Test
-    void shouldReturnHealthyBusyStatus() throws Exception {
-        when(mockPingService.getPingStatus()).thenReturn(new AgentCorePingResponse(PingStatus.HEALTHY_BUSY, HttpStatus.OK, 1234567890L));
+		mockMvc.perform(get("/ping"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("Healthy"))
+			.andExpect(jsonPath("$.time_of_last_update").value(1234567890L));
+	}
 
-        mockMvc.perform(get("/ping"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("HealthyBusy"))
-                .andExpect(jsonPath("$.time_of_last_update").value(1234567890L));
-    }
+	@Test
+	void shouldReturnHealthyBusyStatus() throws Exception {
+		when(mockPingService.getPingStatus())
+			.thenReturn(new AgentCorePingResponse(PingStatus.HEALTHY_BUSY, HttpStatus.OK, 1234567890L));
 
-    @Test
-    void shouldReturnUnhealthyStatus() throws Exception {
-        when(mockPingService.getPingStatus()).thenReturn(new AgentCorePingResponse(PingStatus.UNHEALTHY, HttpStatus.SERVICE_UNAVAILABLE, 1234567890L));
+		mockMvc.perform(get("/ping"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("HealthyBusy"))
+			.andExpect(jsonPath("$.time_of_last_update").value(1234567890L));
+	}
 
-        mockMvc.perform(get("/ping"))
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.status").value("Unhealthy"))
-                .andExpect(jsonPath("$.time_of_last_update").value(1234567890L));
-    }
+	@Test
+	void shouldReturnUnhealthyStatus() throws Exception {
+		when(mockPingService.getPingStatus())
+			.thenReturn(new AgentCorePingResponse(PingStatus.UNHEALTHY, HttpStatus.SERVICE_UNAVAILABLE, 1234567890L));
+
+		mockMvc.perform(get("/ping"))
+			.andExpect(status().isServiceUnavailable())
+			.andExpect(jsonPath("$.status").value("Unhealthy"))
+			.andExpect(jsonPath("$.time_of_last_update").value(1234567890L));
+	}
+
 }

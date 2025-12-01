@@ -25,36 +25,37 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "agentcore.throttle")
 public class ThrottleConfiguration {
 
-    public static final String INVOCATIONS_PATH = "/invocations";
-    public static final String PING_PATH = "/ping";
+	public static final String INVOCATIONS_PATH = "/invocations";
 
-    private int invocationsLimit;
-    private int pingLimit;
+	public static final String PING_PATH = "/ping";
 
-    @Bean
-    public FilterRegistrationBean<RateLimitingFilter> rateLimitingFilter() {
-        FilterRegistrationBean<RateLimitingFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new RateLimitingFilter(invocationsLimit, pingLimit));
-        registrationBean.addUrlPatterns(INVOCATIONS_PATH, PING_PATH);
-        registrationBean.setOrder(1);
-        return registrationBean;
-    }
+	private int invocationsLimit;
 
-    public int getInvocationsLimit() {
-        return invocationsLimit;
-    }
+	private int pingLimit;
 
-    public void setInvocationsLimit(int invocationsLimit) {
-        this.invocationsLimit = invocationsLimit;
-    }
+	@Bean
+	public FilterRegistrationBean<RateLimitingFilter> rateLimitingFilter() {
+		FilterRegistrationBean<RateLimitingFilter> registrationBean = new FilterRegistrationBean<>();
+		registrationBean.setFilter(new RateLimitingFilter(invocationsLimit, pingLimit));
+		registrationBean.addUrlPatterns(INVOCATIONS_PATH, PING_PATH);
+		registrationBean.setOrder(1);
+		return registrationBean;
+	}
 
-    public int getPingLimit() {
-        return pingLimit;
-    }
+	public int getInvocationsLimit() {
+		return invocationsLimit;
+	}
 
-    public void setPingLimit(int pingLimit) {
-        this.pingLimit = pingLimit;
-    }
+	public void setInvocationsLimit(int invocationsLimit) {
+		this.invocationsLimit = invocationsLimit;
+	}
 
+	public int getPingLimit() {
+		return pingLimit;
+	}
+
+	public void setPingLimit(int pingLimit) {
+		this.pingLimit = pingLimit;
+	}
 
 }

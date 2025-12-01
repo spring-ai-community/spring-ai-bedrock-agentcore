@@ -26,109 +26,111 @@ import org.springframework.http.HttpHeaders;
 
 public class AgentCoreMethodInvoker {
 
-    private final ObjectMapper objectMapper;
-    private final AgentCoreMethodRegistry registry;
+	private final ObjectMapper objectMapper;
 
-    public AgentCoreMethodInvoker(ObjectMapper objectMapper, AgentCoreMethodRegistry registry) {
-        this.objectMapper = objectMapper;
-        this.registry = registry;
-    }
+	private final AgentCoreMethodRegistry registry;
 
-    public Object invokeAgentMethod(Object request, HttpHeaders headers) throws Exception {
-        if (!registry.hasAgentMethod()) {
-            throw new AgentCoreInvocationException("No @AgentCoreInvocation method found");
-        }
+	public AgentCoreMethodInvoker(ObjectMapper objectMapper, AgentCoreMethodRegistry registry) {
+		this.objectMapper = objectMapper;
+		this.registry = registry;
+	}
 
-        var method = registry.getAgentMethod();
-        var bean = registry.getAgentBean();
-        var paramTypes = method.getParameterTypes();
+	public Object invokeAgentMethod(Object request, HttpHeaders headers) throws Exception {
+		if (!registry.hasAgentMethod()) {
+			throw new AgentCoreInvocationException("No @AgentCoreInvocation method found");
+		}
 
-        Object[] args = prepareArguments(request, headers, paramTypes);
+		var method = registry.getAgentMethod();
+		var bean = registry.getAgentBean();
+		var paramTypes = method.getParameterTypes();
 
-        try {
-            return method.invoke(bean, args);
-        }
+		Object[] args = prepareArguments(request, headers, paramTypes);
 
-        catch (InvocationTargetException e) {
-            if (e.getCause() instanceof Exception exception) {
-                throw exception;
-            }
-            throw new AgentCoreInvocationException("Method invocation failed", e);
-        }
-    }
+		try {
+			return method.invoke(bean, args);
+		}
 
-    public Object invokeAgentMethod(Object request) throws Exception {
-        return invokeAgentMethod(request, new HttpHeaders());
-    }
+		catch (InvocationTargetException e) {
+			if (e.getCause() instanceof Exception exception) {
+				throw exception;
+			}
+			throw new AgentCoreInvocationException("Method invocation failed", e);
+		}
+	}
 
-    private Object[] prepareArguments(Object request, HttpHeaders headers, Class<?>[] paramTypes) {
-        if (paramTypes.length == 0) {
-            return new Object[0];
-        }
+	public Object invokeAgentMethod(Object request) throws Exception {
+		return invokeAgentMethod(request, new HttpHeaders());
+	}
 
-        // Find AgentCoreContext parameter index
-        int contextIndex = -1;
-        for (int i = 0; i < paramTypes.length; i++) {
-            if (paramTypes[i] == AgentCoreContext.class) {
-                contextIndex = i;
-                break;
-            }
-        }
+	private Object[] prepareArguments(Object request, HttpHeaders headers, Class<?>[] paramTypes) {
+		if (paramTypes.length == 0) {
+			return new Object[0];
+		}
 
-        if (paramTypes.length == 1) {
-            Class<?> paramType = paramTypes[0];
+		// Find AgentCoreContext parameter index
+		int contextIndex = -1;
+		for (int i = 0; i < paramTypes.length; i++) {
+			if (paramTypes[i] == AgentCoreContext.class) {
+				contextIndex = i;
+				break;
+			}
+		}
 
-            // Handle AgentCoreContext parameter
-            if (paramType == AgentCoreContext.class) {
-                return new Object[]{new AgentCoreContext(headers)};
-            }
+		if (paramTypes.length == 1) {
+			Class<?> paramType = paramTypes[0];
 
-            // Direct assignment if types match
-            if (paramType.isAssignableFrom(request.getClass())) {
-                return new Object[]{request};
-            }
+			// Handle AgentCoreContext parameter
+			if (paramType == AgentCoreContext.class) {
+				return new Object[] { new AgentCoreContext(headers) };
+			}
 
-            // JSON conversion for complex types
-            return new Object[]{convertRequest(request, paramType)};
-        }
+			// Direct assignment if types match
+			if (paramType.isAssignableFrom(request.getClass())) {
+				return new Object[] { request };
+			}
 
-        if (paramTypes.length == 2 && contextIndex != -1) {
-            Object[] args = new Object[2];
+			// JSON conversion for complex types
+			return new Object[] { convertRequest(request, paramType) };
+		}
 
-            // Set context parameter
-            args[contextIndex] = new AgentCoreContext(headers);
+		if (paramTypes.length == 2 && contextIndex != -1) {
+			Object[] args = new Object[2];
 
-            // Set request parameter
-            int requestIndex = contextIndex == 0 ? 1 : 0;
-            Class<?> requestType = paramTypes[requestIndex];
+			// Set context parameter
+			args[contextIndex] = new AgentCoreContext(headers);
 
-            if (requestType.isAssignableFrom(request.getClass())) {
-                args[requestIndex] = request;
-            }
+			// Set request parameter
+			int requestIndex = contextIndex == 0 ? 1 : 0;
+			Class<?> requestType = paramTypes[requestIndex];
 
-            else {
-                args[requestIndex] = convertRequest(request, requestType);
-            }
+			if (requestType.isAssignableFrom(request.getClass())) {
+				args[requestIndex] = request;
+			}
 
-            return args;
-        }
+			else {
+				args[requestIndex] = convertRequest(request, requestType);
+			}
 
-        throw new AgentCoreInvocationException("Unsupported parameter combination");
-    }
+			return args;
+		}
 
-    private Object convertRequest(Object request, Class<?> targetType) {
-        try {
-            if (request instanceof String json) {
-                return objectMapper.readValue(json, targetType);
-            }
+		throw new AgentCoreInvocationException("Unsupported parameter combination");
+	}
 
-            // Object to JSON to target type conversion
-            String json = objectMapper.writeValueAsString(request);
-            return objectMapper.readValue(json, targetType);
-        }
+	private Object convertRequest(Object request, Class<?> targetType) {
+		try {
+			if (request instanceof String json) {
+				return objectMapper.readValue(json, targetType);
+			}
 
-        catch (Exception e) {
-            throw new AgentCoreInvocationException("Type conversion failed", e);
-        }
-    }
+			// Object to JSON to target type conversion
+			String json = objectMapper.writeValueAsString(request);
+			return objectMapper.readValue(json, targetType);
+		}
+
+		catch (Exception e) {
+			throw new AgentCoreInvocationException("Type conversion failed", e);
+		}
+	}
+
 }

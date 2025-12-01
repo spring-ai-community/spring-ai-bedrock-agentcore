@@ -33,69 +33,68 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AgentCoreAutoConfigurationTest {
 
-    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(AgentCoreAutoConfiguration.class));
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+		.withConfiguration(AutoConfigurations.of(AgentCoreAutoConfiguration.class));
 
-    @Test
-    void shouldCreateAllBeansWhenAgentCoreInvocationIsPresent() {
-        contextRunner.run(context -> {
-            assertThat(context).hasSingleBean(ObjectMapper.class);
-            assertThat(context).hasSingleBean(AgentCoreMethodRegistry.class);
-            assertThat(context).hasSingleBean(AgentCoreMethodScanner.class);
-            assertThat(context).hasSingleBean(AgentCoreMethodInvoker.class);
-            assertThat(context).hasSingleBean(AgentCoreInvocationsController.class);
-            assertThat(context).hasSingleBean(AgentCorePingController.class);
-        });
-    }
+	@Test
+	void shouldCreateAllBeansWhenAgentCoreInvocationIsPresent() {
+		contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(ObjectMapper.class);
+			assertThat(context).hasSingleBean(AgentCoreMethodRegistry.class);
+			assertThat(context).hasSingleBean(AgentCoreMethodScanner.class);
+			assertThat(context).hasSingleBean(AgentCoreMethodInvoker.class);
+			assertThat(context).hasSingleBean(AgentCoreInvocationsController.class);
+			assertThat(context).hasSingleBean(AgentCorePingController.class);
+		});
+	}
 
-    @Test
-    void shouldWireBeansCorrectly() {
-        contextRunner.run(context -> {
-            var scanner = context.getBean(AgentCoreMethodScanner.class);
-            var invoker = context.getBean(AgentCoreMethodInvoker.class);
-            var controller = context.getBean(AgentCoreInvocationsController.class);
+	@Test
+	void shouldWireBeansCorrectly() {
+		contextRunner.run(context -> {
+			var scanner = context.getBean(AgentCoreMethodScanner.class);
+			var invoker = context.getBean(AgentCoreMethodInvoker.class);
+			var controller = context.getBean(AgentCoreInvocationsController.class);
 
-            assertThat(scanner).isNotNull();
-            assertThat(invoker).isNotNull();
-            assertThat(controller).isNotNull();
-        });
-    }
+			assertThat(scanner).isNotNull();
+			assertThat(invoker).isNotNull();
+			assertThat(controller).isNotNull();
+		});
+	}
 
-    @Test
-    void shouldAllowCustomObjectMapperOverride() {
-        contextRunner
-                .withUserConfiguration(CustomObjectMapperConfiguration.class)
-                .run(context -> {
-                    assertThat(context).hasSingleBean(ObjectMapper.class);
-                    assertThat(context.getBean(ObjectMapper.class))
-                            .isSameAs(context.getBean("customObjectMapper"));
-                });
-    }
+	@Test
+	void shouldAllowCustomObjectMapperOverride() {
+		contextRunner.withUserConfiguration(CustomObjectMapperConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(ObjectMapper.class);
+			assertThat(context.getBean(ObjectMapper.class)).isSameAs(context.getBean("customObjectMapper"));
+		});
+	}
 
-    @Test
-    void shouldAllowCustomRegistryOverride() {
-        contextRunner
-                .withUserConfiguration(CustomRegistryConfiguration.class)
-                .run(context -> {
-                    assertThat(context).hasSingleBean(AgentCoreMethodRegistry.class);
-                    assertThat(context.getBean(AgentCoreMethodRegistry.class))
-                            .isSameAs(context.getBean("customRegistry"));
-                });
-    }
+	@Test
+	void shouldAllowCustomRegistryOverride() {
+		contextRunner.withUserConfiguration(CustomRegistryConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(AgentCoreMethodRegistry.class);
+			assertThat(context.getBean(AgentCoreMethodRegistry.class)).isSameAs(context.getBean("customRegistry"));
+		});
+	}
 
-    @Configuration
-    static class CustomObjectMapperConfiguration {
-        @Bean
-        public ObjectMapper customObjectMapper() {
-            return new ObjectMapper();
-        }
-    }
+	@Configuration
+	static class CustomObjectMapperConfiguration {
 
-    @Configuration
-    static class CustomRegistryConfiguration {
-        @Bean
-        public AgentCoreMethodRegistry customRegistry() {
-            return new AgentCoreMethodRegistry();
-        }
-    }
+		@Bean
+		public ObjectMapper customObjectMapper() {
+			return new ObjectMapper();
+		}
+
+	}
+
+	@Configuration
+	static class CustomRegistryConfiguration {
+
+		@Bean
+		public AgentCoreMethodRegistry customRegistry() {
+			return new AgentCoreMethodRegistry();
+		}
+
+	}
+
 }

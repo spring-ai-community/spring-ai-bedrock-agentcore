@@ -30,40 +30,43 @@ import org.springframework.web.client.RestTemplate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "agentcore.throttle.invocations-limit=0",
-        "agentcore.throttle.ping-limit=0"
-    })
+		properties = { "agentcore.throttle.invocations-limit=0", "agentcore.throttle.ping-limit=0" })
 class RateLimitingFilterDisabledTest {
 
-    @LocalServerPort
-    private int port;
+	@LocalServerPort
+	private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+	private final RestTemplate restTemplate = new RestTemplate();
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class ContextTestApp {
-        @Service
-        public static class TestAgentService {
-            @AgentCoreInvocation
-            public String handleWithContext(String request) {
-                return "Message: " + request;
-            }
-        }
-    }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class ContextTestApp {
 
-    @Test
-    void shouldNotThrottleWhenLimitsAreZero() {
-        String invocationsUrl = "http://localhost:" + port + "/invocations";
-        String pingUrl = "http://localhost:" + port + "/ping";
+		@Service
+		public static class TestAgentService {
 
-        // Multiple requests should all succeed when limits are 0
-        for (int i = 0; i < 5; i++) {
-            ResponseEntity<String> invocationsResponse = restTemplate.postForEntity(invocationsUrl, "test" + i, String.class);
-            assertEquals(HttpStatus.OK, invocationsResponse.getStatusCode());
+			@AgentCoreInvocation
+			public String handleWithContext(String request) {
+				return "Message: " + request;
+			}
 
-            ResponseEntity<String> pingResponse = restTemplate.getForEntity(pingUrl, String.class);
-            assertEquals(HttpStatus.OK, pingResponse.getStatusCode());
-        }
-    }
+		}
+
+	}
+
+	@Test
+	void shouldNotThrottleWhenLimitsAreZero() {
+		String invocationsUrl = "http://localhost:" + port + "/invocations";
+		String pingUrl = "http://localhost:" + port + "/ping";
+
+		// Multiple requests should all succeed when limits are 0
+		for (int i = 0; i < 5; i++) {
+			ResponseEntity<String> invocationsResponse = restTemplate.postForEntity(invocationsUrl, "test" + i,
+					String.class);
+			assertEquals(HttpStatus.OK, invocationsResponse.getStatusCode());
+
+			ResponseEntity<String> pingResponse = restTemplate.getForEntity(pingUrl, String.class);
+			assertEquals(HttpStatus.OK, pingResponse.getStatusCode());
+		}
+	}
+
 }

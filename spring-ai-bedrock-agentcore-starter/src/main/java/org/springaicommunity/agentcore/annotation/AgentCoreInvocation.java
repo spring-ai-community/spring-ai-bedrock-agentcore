@@ -23,11 +23,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as an agent invocation handler for the AgentCore runtime.
- * Only one method per application can be annotated with this annotation.
+ * Marks a method as an agent invocation handler for the AgentCore runtime. Only one
+ * method per application can be annotated with this annotation.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface AgentCoreInvocation {
+
 }

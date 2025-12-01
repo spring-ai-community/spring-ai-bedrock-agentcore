@@ -21,31 +21,34 @@ import java.lang.reflect.Method;
 import org.springaicommunity.agentcore.exception.AgentCoreInvocationException;
 
 /**
- * Registry that stores exactly one AgentCore method per application.
- * Enforces the single method constraint for MVP.
+ * Registry that stores exactly one AgentCore method per application. Enforces the single
+ * method constraint for MVP.
  */
 public class AgentCoreMethodRegistry {
 
-    private Object agentBean;
-    private Method agentMethod;
+	private Object agentBean;
 
-    public void registerMethod(Object bean, Method method) {
-        if (agentBean != null) {
-            throw new AgentCoreInvocationException("Multiple @AgentCoreInvocation methods found. Only one is allowed in MVP.");
-        }
-        this.agentBean = bean;
-        this.agentMethod = method;
-    }
+	private Method agentMethod;
 
-    public boolean hasAgentMethod() {
-        return agentMethod != null;
-    }
+	public void registerMethod(Object bean, Method method) {
+		if (agentBean != null) {
+			throw new AgentCoreInvocationException(
+					"Multiple @AgentCoreInvocation methods found. Only one is allowed in MVP.");
+		}
+		this.agentBean = bean;
+		this.agentMethod = method;
+	}
 
-    public Object getAgentBean() {
-        return agentBean;
-    }
+	public boolean hasAgentMethod() {
+		return agentMethod != null;
+	}
 
-    public Method getAgentMethod() {
-        return agentMethod;
-    }
+	public Object getAgentBean() {
+		return agentBean;
+	}
+
+	public Method getAgentMethod() {
+		return agentMethod;
+	}
+
 }

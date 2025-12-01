@@ -34,124 +34,125 @@ import static org.mockito.Mockito.when;
  */
 class ActuatorAgentCorePingServiceStatusMappingTest {
 
-    @Test
-    void shouldMapUpStatusToHealthy() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenReturn(Health.up().build());
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldMapUpStatusToHealthy() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenReturn(Health.up().build());
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertEquals(PingStatus.HEALTHY, response.status());
-        assertEquals(HttpStatus.OK, response.httpStatus());
-    }
+		// Then
+		assertEquals(PingStatus.HEALTHY, response.status());
+		assertEquals(HttpStatus.OK, response.httpStatus());
+	}
 
-    @Test
-    void shouldMapDownStatusToUnhealthy() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenReturn(Health.down().build());
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldMapDownStatusToUnhealthy() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenReturn(Health.down().build());
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertEquals(PingStatus.UNHEALTHY, response.status());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
-    }
+		// Then
+		assertEquals(PingStatus.UNHEALTHY, response.status());
+		assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
+	}
 
-    @Test
-    void shouldMapUnknownStatusToUnhealthy() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenReturn(Health.status(Status.UNKNOWN).build());
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldMapUnknownStatusToUnhealthy() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenReturn(Health.status(Status.UNKNOWN).build());
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertEquals(PingStatus.UNHEALTHY, response.status());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
-    }
+		// Then
+		assertEquals(PingStatus.UNHEALTHY, response.status());
+		assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
+	}
 
-    @Test
-    void shouldMapOutOfServiceStatusToUnhealthy() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenReturn(Health.status(Status.OUT_OF_SERVICE).build());
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldMapOutOfServiceStatusToUnhealthy() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenReturn(Health.status(Status.OUT_OF_SERVICE).build());
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertEquals(PingStatus.UNHEALTHY, response.status());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
-    }
+		// Then
+		assertEquals(PingStatus.UNHEALTHY, response.status());
+		assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
+	}
 
-    @Test
-    void shouldMapCustomStatusToUnhealthy() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenReturn(Health.status("CUSTOM_STATUS").build());
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldMapCustomStatusToUnhealthy() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenReturn(Health.status("CUSTOM_STATUS").build());
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertEquals(PingStatus.UNHEALTHY, response.status());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
-    }
+		// Then
+		assertEquals(PingStatus.UNHEALTHY, response.status());
+		assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.httpStatus());
+	}
 
-    @Test
-    void shouldHandleExceptionsWithInternalServerError() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenThrow(new RuntimeException("Health check failed"));
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldHandleExceptionsWithInternalServerError() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenThrow(new RuntimeException("Health check failed"));
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertEquals(PingStatus.UNHEALTHY, response.status());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.httpStatus());
-    }
+		// Then
+		assertEquals(PingStatus.UNHEALTHY, response.status());
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.httpStatus());
+	}
 
-    @Test
-    void shouldReturnCurrentTimestamp() {
-        // Given
-        var endpoint = mock(HealthEndpoint.class);
-        when(endpoint.health()).thenReturn(Health.up().build());
-        var requestCounter = mock(AgentCoreTaskTracker.class);
+	@Test
+	void shouldReturnCurrentTimestamp() {
+		// Given
+		var endpoint = mock(HealthEndpoint.class);
+		when(endpoint.health()).thenReturn(Health.up().build());
+		var requestCounter = mock(AgentCoreTaskTracker.class);
 
-        var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
-        var beforeCall = System.currentTimeMillis() / 1000;
+		var service = new ActuatorAgentCorePingService(endpoint, requestCounter);
+		var beforeCall = System.currentTimeMillis() / 1000;
 
-        // When
-        var response = service.getPingStatus();
-        var afterCall = System.currentTimeMillis() / 1000;
+		// When
+		var response = service.getPingStatus();
+		var afterCall = System.currentTimeMillis() / 1000;
 
-        // Then
-        assertTrue(response.timeOfLastUpdate() >= beforeCall);
-        assertTrue(response.timeOfLastUpdate() <= afterCall);
-    }
+		// Then
+		assertTrue(response.timeOfLastUpdate() >= beforeCall);
+		assertTrue(response.timeOfLastUpdate() <= afterCall);
+	}
+
 }

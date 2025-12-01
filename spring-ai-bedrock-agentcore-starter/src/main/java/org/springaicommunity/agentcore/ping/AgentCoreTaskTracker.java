@@ -21,24 +21,27 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
 /**
- * AgentCore Task Tracker to report HEALTHY_BUSY status to AgentCore Runtime during health check
- * See: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-long-run.html
+ * AgentCore Task Tracker to report HEALTHY_BUSY status to AgentCore Runtime during health
+ * check See:
+ * https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-long-run.html
  */
 @Component
 public class AgentCoreTaskTracker {
-    private final AtomicLong activeTasks = new AtomicLong(0);
 
-    public void increment() {
-        activeTasks.incrementAndGet();
-    }
+	private final AtomicLong activeTasks = new AtomicLong(0);
 
-    public void decrement() {
-        if (activeTasks.get() > 0) {
-            activeTasks.decrementAndGet();
-        }
-    }
+	public void increment() {
+		activeTasks.incrementAndGet();
+	}
 
-    public long getCount() {
-        return activeTasks.get();
-    }
+	public void decrement() {
+		if (activeTasks.get() > 0) {
+			activeTasks.decrementAndGet();
+		}
+	}
+
+	public long getCount() {
+		return activeTasks.get();
+	}
+
 }

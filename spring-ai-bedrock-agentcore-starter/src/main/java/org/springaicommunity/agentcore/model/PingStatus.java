@@ -17,18 +17,18 @@
 package org.springaicommunity.agentcore.model;
 
 public enum PingStatus {
-    HEALTHY("Healthy"),
-    HEALTHY_BUSY("HealthyBusy"),
-    UNHEALTHY("Unhealthy");
 
-    private final String value;
+	HEALTHY("Healthy"), HEALTHY_BUSY("HealthyBusy"), UNHEALTHY("Unhealthy");
 
-    PingStatus(String value) {
-        this.value = value;
-    }
+	private final String value;
 
-    @Override
-    public String toString() {
-        return value;
-    }
+	PingStatus(String value) {
+		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return value;
+	}
+
 }

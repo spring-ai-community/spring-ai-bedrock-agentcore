@@ -29,40 +29,39 @@ import org.springframework.stereotype.Service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-    classes = EndToEndStringIntegrationTest.TestApp.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(classes = EndToEndStringIntegrationTest.TestApp.class,
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EndToEndStringIntegrationTest {
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class TestApp {
-        @Service
-        public static class TestAgentService {
-            @AgentCoreInvocation
-            public String handlePrompt(String prompt) {
-                return "E2E Response: " + prompt;
-            }
-        }
-    }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class TestApp {
 
-    @LocalServerPort
-    private int port;
+		@Service
+		public static class TestAgentService {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+			@AgentCoreInvocation
+			public String handlePrompt(String prompt) {
+				return "E2E Response: " + prompt;
+			}
 
-    @Test
-    void shouldHandleStringRequest() {
-        var request = "Hello World";
+		}
 
-        var response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/invocations",
-            request,
-            String.class
-        );
+	}
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo("E2E Response: Hello World");
-    }
+	@LocalServerPort
+	private int port;
+
+	@Autowired
+	private TestRestTemplate restTemplate;
+
+	@Test
+	void shouldHandleStringRequest() {
+		var request = "Hello World";
+
+		var response = restTemplate.postForEntity("http://localhost:" + port + "/invocations", request, String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("E2E Response: Hello World");
+	}
+
 }

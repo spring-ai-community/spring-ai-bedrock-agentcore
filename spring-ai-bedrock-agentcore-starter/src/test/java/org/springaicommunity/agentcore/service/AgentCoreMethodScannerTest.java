@@ -33,76 +33,83 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AgentCoreMethodScannerTest {
 
-    @Mock
-    private AgentCoreMethodRegistry mockRegistry;
+	@Mock
+	private AgentCoreMethodRegistry mockRegistry;
 
-    private AgentCoreMethodScanner scanner;
+	private AgentCoreMethodScanner scanner;
 
-    @BeforeEach
-    void setUp() {
-        scanner = new AgentCoreMethodScanner(mockRegistry);
-    }
+	@BeforeEach
+	void setUp() {
+		scanner = new AgentCoreMethodScanner(mockRegistry);
+	}
 
-    @Test
-    void shouldDiscoverAndRegisterAgentCoreInvocationMethod() {
-        var bean = new BeanWithSingleMethod();
+	@Test
+	void shouldDiscoverAndRegisterAgentCoreInvocationMethod() {
+		var bean = new BeanWithSingleMethod();
 
-        var result = scanner.postProcessAfterInitialization(bean, "testBean");
+		var result = scanner.postProcessAfterInitialization(bean, "testBean");
 
-        assertThat(result).isSameAs(bean);
-        verify(mockRegistry).registerMethod(eq(bean), any());
-    }
+		assertThat(result).isSameAs(bean);
+		verify(mockRegistry).registerMethod(eq(bean), any());
+	}
 
-    @Test
-    void shouldIgnoreBeansWithoutAgentCoreInvocationMethods() {
-        var bean = new BeanWithoutAnnotation();
+	@Test
+	void shouldIgnoreBeansWithoutAgentCoreInvocationMethods() {
+		var bean = new BeanWithoutAnnotation();
 
-        var result = scanner.postProcessAfterInitialization(bean, "testBean");
+		var result = scanner.postProcessAfterInitialization(bean, "testBean");
 
-        assertThat(result).isSameAs(bean);
-        verify(mockRegistry, never()).registerMethod(any(), any());
-    }
+		assertThat(result).isSameAs(bean);
+		verify(mockRegistry, never()).registerMethod(any(), any());
+	}
 
-    @Test
-    void shouldPropagateRegistryExceptionForMultipleMethods() {
-        var bean = new BeanWithMultipleMethods();
-        doThrow(new AgentCoreInvocationException("Multiple methods")).when(mockRegistry).registerMethod(any(), any());
+	@Test
+	void shouldPropagateRegistryExceptionForMultipleMethods() {
+		var bean = new BeanWithMultipleMethods();
+		doThrow(new AgentCoreInvocationException("Multiple methods")).when(mockRegistry).registerMethod(any(), any());
 
-        assertThatThrownBy(() -> scanner.postProcessAfterInitialization(bean, "testBean"))
-            .isInstanceOf(AgentCoreInvocationException.class)
-            .hasMessage("Multiple methods");
-    }
+		assertThatThrownBy(() -> scanner.postProcessAfterInitialization(bean, "testBean"))
+			.isInstanceOf(AgentCoreInvocationException.class)
+			.hasMessage("Multiple methods");
+	}
 
-    static class BeanWithSingleMethod {
-        @AgentCoreInvocation
-        public String handleRequest(String input) {
-            return "response";
-        }
+	static class BeanWithSingleMethod {
 
-        public void regularMethod() {
-            // Not annotated
-        }
-    }
+		@AgentCoreInvocation
+		public String handleRequest(String input) {
+			return "response";
+		}
 
-    static class BeanWithoutAnnotation {
-        public String regularMethod(String input) {
-            return "response";
-        }
+		public void regularMethod() {
+			// Not annotated
+		}
 
-        public void anotherMethod() {
-            // No annotations
-        }
-    }
+	}
 
-    static class BeanWithMultipleMethods {
-        @AgentCoreInvocation
-        public String firstMethod(String input) {
-            return "response1";
-        }
+	static class BeanWithoutAnnotation {
 
-        @AgentCoreInvocation
-        public String secondMethod(String input) {
-            return "response2";
-        }
-    }
+		public String regularMethod(String input) {
+			return "response";
+		}
+
+		public void anotherMethod() {
+			// No annotations
+		}
+
+	}
+
+	static class BeanWithMultipleMethods {
+
+		@AgentCoreInvocation
+		public String firstMethod(String input) {
+			return "response1";
+		}
+
+		@AgentCoreInvocation
+		public String secondMethod(String input) {
+			return "response2";
+		}
+
+	}
+
 }

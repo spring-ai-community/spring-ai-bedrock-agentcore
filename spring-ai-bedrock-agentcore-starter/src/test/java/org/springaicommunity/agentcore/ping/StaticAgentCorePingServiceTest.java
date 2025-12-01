@@ -30,65 +30,66 @@ import static org.mockito.Mockito.when;
  */
 class StaticAgentCorePingServiceTest {
 
-    @Test
-    void shouldReturnHealthyStatus() {
-        // Given
-        var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
-        var service = new StaticAgentCorePingService(agentCoreTaskTracker);
+	@Test
+	void shouldReturnHealthyStatus() {
+		// Given
+		var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
+		var service = new StaticAgentCorePingService(agentCoreTaskTracker);
 
-        // When
-        var response = service.getPingStatus();
+		// When
+		var response = service.getPingStatus();
 
-        // Then
-        assertThat(response.status()).isEqualTo(PingStatus.HEALTHY);
-        assertThat(response.httpStatus()).isEqualTo(HttpStatus.OK);
-        assertThat(response.timeOfLastUpdate()).isGreaterThan(0);
-    }
+		// Then
+		assertThat(response.status()).isEqualTo(PingStatus.HEALTHY);
+		assertThat(response.httpStatus()).isEqualTo(HttpStatus.OK);
+		assertThat(response.timeOfLastUpdate()).isGreaterThan(0);
+	}
 
-    @Test
-    void shouldReturnCurrentTimestamp() {
-        // Given
-        var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
-        var service = new StaticAgentCorePingService(agentCoreTaskTracker);
-        var beforeCall = System.currentTimeMillis() / 1000;
+	@Test
+	void shouldReturnCurrentTimestamp() {
+		// Given
+		var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
+		var service = new StaticAgentCorePingService(agentCoreTaskTracker);
+		var beforeCall = System.currentTimeMillis() / 1000;
 
-        // When
-        var response = service.getPingStatus();
-        var afterCall = System.currentTimeMillis() / 1000;
+		// When
+		var response = service.getPingStatus();
+		var afterCall = System.currentTimeMillis() / 1000;
 
-        // Then
-        assertThat(response.timeOfLastUpdate()).isGreaterThanOrEqualTo(beforeCall);
-        assertThat(response.timeOfLastUpdate()).isLessThanOrEqualTo(afterCall);
-    }
+		// Then
+		assertThat(response.timeOfLastUpdate()).isGreaterThanOrEqualTo(beforeCall);
+		assertThat(response.timeOfLastUpdate()).isLessThanOrEqualTo(afterCall);
+	}
 
-    @Test
-    void shouldReturnConsistentFormat() {
-        // Given
-        var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
-        var service = new StaticAgentCorePingService(agentCoreTaskTracker);
+	@Test
+	void shouldReturnConsistentFormat() {
+		// Given
+		var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
+		var service = new StaticAgentCorePingService(agentCoreTaskTracker);
 
-        // When
-        var response1 = service.getPingStatus();
-        var response2 = service.getPingStatus();
+		// When
+		var response1 = service.getPingStatus();
+		var response2 = service.getPingStatus();
 
-        // Then
-        assertThat(response1.status()).isEqualTo(response2.status());
-        assertThat(response1.httpStatus()).isEqualTo(response2.httpStatus());
-        // Timestamps may differ slightly
-        assertThat(response2.timeOfLastUpdate()).isGreaterThanOrEqualTo(response1.timeOfLastUpdate());
-    }
+		// Then
+		assertThat(response1.status()).isEqualTo(response2.status());
+		assertThat(response1.httpStatus()).isEqualTo(response2.httpStatus());
+		// Timestamps may differ slightly
+		assertThat(response2.timeOfLastUpdate()).isGreaterThanOrEqualTo(response1.timeOfLastUpdate());
+	}
 
-    @Test
-    void shouldReturnHealthyBusy() {
-        // Given
-        var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
-        when(agentCoreTaskTracker.getCount()).thenReturn(1L);
-        var service = new StaticAgentCorePingService(agentCoreTaskTracker);
+	@Test
+	void shouldReturnHealthyBusy() {
+		// Given
+		var agentCoreTaskTracker = mock(AgentCoreTaskTracker.class);
+		when(agentCoreTaskTracker.getCount()).thenReturn(1L);
+		var service = new StaticAgentCorePingService(agentCoreTaskTracker);
 
-        // When
-        var response1 = service.getPingStatus();
+		// When
+		var response1 = service.getPingStatus();
 
-        // Then
-        assertThat(response1.status()).isEqualTo(PingStatus.HEALTHY_BUSY);
-    }
+		// Then
+		assertThat(response1.status()).isEqualTo(PingStatus.HEALTHY_BUSY);
+	}
+
 }

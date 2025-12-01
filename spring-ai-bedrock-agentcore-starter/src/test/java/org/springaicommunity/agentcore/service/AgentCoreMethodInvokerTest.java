@@ -34,199 +34,207 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AgentCoreMethodInvokerTest {
 
-    @Mock
-    private ObjectMapper mockObjectMapper;
+	@Mock
+	private ObjectMapper mockObjectMapper;
 
-    @Mock
-    private AgentCoreMethodRegistry mockRegistry;
+	@Mock
+	private AgentCoreMethodRegistry mockRegistry;
 
-    private AgentCoreMethodInvoker invoker;
-    private Object testRequest;
+	private AgentCoreMethodInvoker invoker;
 
-    @BeforeEach
-    void setUp() {
-        invoker = new AgentCoreMethodInvoker(mockObjectMapper, mockRegistry);
-        testRequest = "test prompt";
-    }
+	private Object testRequest;
 
-    @Test
-    void shouldInvokeStringToStringMethod() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("stringMethod", String.class);
+	@BeforeEach
+	void setUp() {
+		invoker = new AgentCoreMethodInvoker(mockObjectMapper, mockRegistry);
+		testRequest = "test prompt";
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldInvokeStringToStringMethod() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("stringMethod", String.class);
 
-        var result = invoker.invokeAgentMethod(testRequest);
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-        assertThat(result).isEqualTo("Response: test prompt");
-    }
+		var result = invoker.invokeAgentMethod(testRequest);
 
-    @Test
-    void shouldInvokeMapMethod() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("mapMethod", Map.class);
-        var mapRequest = Map.of("prompt", "test prompt");
+		assertThat(result).isEqualTo("Response: test prompt");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldInvokeMapMethod() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("mapMethod", Map.class);
+		var mapRequest = Map.of("prompt", "test prompt");
 
-        var result = invoker.invokeAgentMethod(mapRequest);
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-        assertThat(result).isEqualTo("Map response: test prompt");
-    }
+		var result = invoker.invokeAgentMethod(mapRequest);
 
-    @Test
-    void shouldInvokeCustomTypeMethod() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("customTypeMethod", CustomRequest.class);
-        var convertedRequest = new CustomRequest("test prompt");
+		assertThat(result).isEqualTo("Map response: test prompt");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldInvokeCustomTypeMethod() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("customTypeMethod", CustomRequest.class);
+		var convertedRequest = new CustomRequest("test prompt");
 
-        var result = invoker.invokeAgentMethod(convertedRequest);
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-        assertThat(result).isEqualTo("Custom response: test prompt");
-    }
+		var result = invoker.invokeAgentMethod(convertedRequest);
 
-    @Test
-    void shouldInvokeNoArgsMethod() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("noArgsMethod");
+		assertThat(result).isEqualTo("Custom response: test prompt");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldInvokeNoArgsMethod() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("noArgsMethod");
 
-        var result = invoker.invokeAgentMethod(testRequest);
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-        assertThat(result).isEqualTo("No args response");
-    }
+		var result = invoker.invokeAgentMethod(testRequest);
 
-    @Test
-    void shouldThrowExceptionWhenNoMethodRegistered() {
-        when(mockRegistry.hasAgentMethod()).thenReturn(false);
+		assertThat(result).isEqualTo("No args response");
+	}
 
-        assertThatThrownBy(() -> invoker.invokeAgentMethod(testRequest))
-            .isInstanceOf(AgentCoreInvocationException.class)
-            .hasMessage("No @AgentCoreInvocation method found");
-    }
+	@Test
+	void shouldThrowExceptionWhenNoMethodRegistered() {
+		when(mockRegistry.hasAgentMethod()).thenReturn(false);
 
-    @Test
-    void shouldThrowExceptionForUnsupportedSignature() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("unsupportedMethod", String.class, String.class);
+		assertThatThrownBy(() -> invoker.invokeAgentMethod(testRequest))
+			.isInstanceOf(AgentCoreInvocationException.class)
+			.hasMessage("No @AgentCoreInvocation method found");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldThrowExceptionForUnsupportedSignature() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("unsupportedMethod", String.class, String.class);
 
-        assertThatThrownBy(() -> invoker.invokeAgentMethod(testRequest))
-            .isInstanceOf(AgentCoreInvocationException.class)
-            .hasMessage("Unsupported parameter combination");
-    }
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-    @Test
-    void shouldPropagateMethodExceptions() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("throwingMethod", String.class);
+		assertThatThrownBy(() -> invoker.invokeAgentMethod(testRequest))
+			.isInstanceOf(AgentCoreInvocationException.class)
+			.hasMessage("Unsupported parameter combination");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldPropagateMethodExceptions() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("throwingMethod", String.class);
 
-        assertThatThrownBy(() -> invoker.invokeAgentMethod(testRequest))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("Method exception");
-    }
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-    @Test
-    void shouldInjectAgentCoreContext() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("contextMethod", org.springaicommunity.agentcore.context.AgentCoreContext.class);
-        var headers = new org.springframework.http.HttpHeaders();
-        headers.add("test-header", "test-value");
+		assertThatThrownBy(() -> invoker.invokeAgentMethod(testRequest)).isInstanceOf(RuntimeException.class)
+			.hasMessage("Method exception");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldInjectAgentCoreContext() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("contextMethod",
+				org.springaicommunity.agentcore.context.AgentCoreContext.class);
+		var headers = new org.springframework.http.HttpHeaders();
+		headers.add("test-header", "test-value");
 
-        var result = invoker.invokeAgentMethod(testRequest, headers);
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-        assertThat(result).isEqualTo("Context response: test-value");
-    }
+		var result = invoker.invokeAgentMethod(testRequest, headers);
 
-    @Test
-    void shouldInjectBothRequestAndContext() throws Exception {
-        var testBean = new TestBean();
-        var method = TestBean.class.getDeclaredMethod("requestAndContextMethod", String.class, org.springaicommunity.agentcore.context.AgentCoreContext.class);
-        var headers = new org.springframework.http.HttpHeaders();
-        headers.add("session-id", "session-123");
+		assertThat(result).isEqualTo("Context response: test-value");
+	}
 
-        when(mockRegistry.hasAgentMethod()).thenReturn(true);
-        when(mockRegistry.getAgentMethod()).thenReturn(method);
-        when(mockRegistry.getAgentBean()).thenReturn(testBean);
+	@Test
+	void shouldInjectBothRequestAndContext() throws Exception {
+		var testBean = new TestBean();
+		var method = TestBean.class.getDeclaredMethod("requestAndContextMethod", String.class,
+				org.springaicommunity.agentcore.context.AgentCoreContext.class);
+		var headers = new org.springframework.http.HttpHeaders();
+		headers.add("session-id", "session-123");
 
-        var result = invoker.invokeAgentMethod(testRequest, headers);
+		when(mockRegistry.hasAgentMethod()).thenReturn(true);
+		when(mockRegistry.getAgentMethod()).thenReturn(method);
+		when(mockRegistry.getAgentBean()).thenReturn(testBean);
 
-        assertThat(result).isEqualTo("Request: test prompt, Session: session-123");
-    }
+		var result = invoker.invokeAgentMethod(testRequest, headers);
 
-    static class TestBean {
-        @AgentCoreInvocation
-        public String stringMethod(String prompt) {
-            return "Response: " + prompt;
-        }
+		assertThat(result).isEqualTo("Request: test prompt, Session: session-123");
+	}
 
-        @AgentCoreInvocation
-        public String mapMethod(Map<String, Object> request) {
-            return "Map response: " + request.get("prompt");
-        }
+	static class TestBean {
 
-        @AgentCoreInvocation
-        public String customTypeMethod(CustomRequest request) {
-            return "Custom response: " + request.prompt();
-        }
+		@AgentCoreInvocation
+		public String stringMethod(String prompt) {
+			return "Response: " + prompt;
+		}
 
-        @AgentCoreInvocation
-        public String noArgsMethod() {
-            return "No args response";
-        }
+		@AgentCoreInvocation
+		public String mapMethod(Map<String, Object> request) {
+			return "Map response: " + request.get("prompt");
+		}
 
-        @AgentCoreInvocation
-        public String unsupportedMethod(String arg1, String arg2) {
-            return "Should not be called";
-        }
+		@AgentCoreInvocation
+		public String customTypeMethod(CustomRequest request) {
+			return "Custom response: " + request.prompt();
+		}
 
-        @AgentCoreInvocation
-        public String throwingMethod(String prompt) {
-            throw new RuntimeException("Method exception");
-        }
+		@AgentCoreInvocation
+		public String noArgsMethod() {
+			return "No args response";
+		}
 
-        @AgentCoreInvocation
-        public String contextMethod(org.springaicommunity.agentcore.context.AgentCoreContext context) {
-            return "Context response: " + context.getHeader("test-header");
-        }
+		@AgentCoreInvocation
+		public String unsupportedMethod(String arg1, String arg2) {
+			return "Should not be called";
+		}
 
-        @AgentCoreInvocation
-        public String requestAndContextMethod(String prompt, org.springaicommunity.agentcore.context.AgentCoreContext context) {
-            return "Request: " + prompt + ", Session: " + context.getHeader("session-id");
-        }
-    }
+		@AgentCoreInvocation
+		public String throwingMethod(String prompt) {
+			throw new RuntimeException("Method exception");
+		}
 
-    static class CustomRequest {
-        private final String prompt;
+		@AgentCoreInvocation
+		public String contextMethod(org.springaicommunity.agentcore.context.AgentCoreContext context) {
+			return "Context response: " + context.getHeader("test-header");
+		}
 
-        CustomRequest(String prompt) {
-            this.prompt = prompt;
-        }
+		@AgentCoreInvocation
+		public String requestAndContextMethod(String prompt,
+				org.springaicommunity.agentcore.context.AgentCoreContext context) {
+			return "Request: " + prompt + ", Session: " + context.getHeader("session-id");
+		}
 
-        public String prompt() {
-            return prompt;
-        }
-    }
+	}
+
+	static class CustomRequest {
+
+		private final String prompt;
+
+		CustomRequest(String prompt) {
+			this.prompt = prompt;
+		}
+
+		public String prompt() {
+			return prompt;
+		}
+
+	}
+
 }

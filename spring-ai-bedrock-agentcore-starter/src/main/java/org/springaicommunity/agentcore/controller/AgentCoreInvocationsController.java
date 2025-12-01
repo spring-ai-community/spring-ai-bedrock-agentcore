@@ -33,31 +33,37 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class AgentCoreInvocationsController {
 
-    private final AgentCoreMethodInvoker invoker;
-    private final Logger logger = LoggerFactory.getLogger(AgentCoreInvocationsController.class);
+	private final AgentCoreMethodInvoker invoker;
 
-    public AgentCoreInvocationsController(AgentCoreMethodInvoker invoker) {
-        this.invoker = invoker;
-    }
+	private final Logger logger = LoggerFactory.getLogger(AgentCoreInvocationsController.class);
 
-    @PostMapping(value = "/invocations", consumes = MediaType.APPLICATION_JSON_VALUE, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE})
-    public Object handleJsonInvocation(@RequestBody Object request, @RequestHeader HttpHeaders headers) throws Exception {
-        return handleInvocation(request, headers);
-    }
+	public AgentCoreInvocationsController(AgentCoreMethodInvoker invoker) {
+		this.invoker = invoker;
+	}
 
-    @PostMapping(value = "/invocations", consumes = MediaType.TEXT_PLAIN_VALUE, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE})
-    public Object handleTextInvocation(@RequestBody String request, @RequestHeader HttpHeaders headers) throws Exception {
-        return handleInvocation(request, headers);
-    }
+	@PostMapping(value = "/invocations", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE })
+	public Object handleJsonInvocation(@RequestBody Object request, @RequestHeader HttpHeaders headers)
+			throws Exception {
+		return handleInvocation(request, headers);
+	}
 
-    private Object handleInvocation(Object request, HttpHeaders headers) throws Exception {
-        try {
-            return invoker.invokeAgentMethod(request, headers);
-        }
+	@PostMapping(value = "/invocations", consumes = MediaType.TEXT_PLAIN_VALUE,
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE })
+	public Object handleTextInvocation(@RequestBody String request, @RequestHeader HttpHeaders headers)
+			throws Exception {
+		return handleInvocation(request, headers);
+	}
 
-        catch (AgentCoreInvocationException e) {
-            logger.error("Error trying to invoke AgentCoreInvocation method: " + e.getMessage(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-    }
+	private Object handleInvocation(Object request, HttpHeaders headers) throws Exception {
+		try {
+			return invoker.invokeAgentMethod(request, headers);
+		}
+
+		catch (AgentCoreInvocationException e) {
+			logger.error("Error trying to invoke AgentCoreInvocation method: " + e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+	}
+
 }

@@ -36,53 +36,55 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Auto-configuration for AgentCore runtime support.
- * Automatically configures all necessary beans when AgentCoreInvocation is on the classpath.
+ * Auto-configuration for AgentCore runtime support. Automatically configures all
+ * necessary beans when AgentCoreInvocation is on the classpath.
  */
 @Configuration
-@ConditionalOnClass({AgentCoreInvocation.class, RestController.class})
-@Import({AgentCorePingAutoConfiguration.class, AgentCoreActuatorAutoConfiguration.class, ThrottleConfiguration.class})
+@ConditionalOnClass({ AgentCoreInvocation.class, RestController.class })
+@Import({ AgentCorePingAutoConfiguration.class, AgentCoreActuatorAutoConfiguration.class, ThrottleConfiguration.class })
 public class AgentCoreAutoConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public ObjectMapper objectMapper() {
+		return new ObjectMapper();
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    public AgentCoreMethodInvoker agentCoreMethodInvoker(ObjectMapper mapper, AgentCoreMethodRegistry registry) {
-        return new AgentCoreMethodInvoker(mapper, registry);
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public AgentCoreMethodInvoker agentCoreMethodInvoker(ObjectMapper mapper, AgentCoreMethodRegistry registry) {
+		return new AgentCoreMethodInvoker(mapper, registry);
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    public AgentCoreInvocationsController agentCoreController(AgentCoreMethodInvoker invoker, AgentCoreTaskTracker agentCoreTaskTracker) {
-        return new AgentCoreInvocationsController(invoker);
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public AgentCoreInvocationsController agentCoreController(AgentCoreMethodInvoker invoker,
+			AgentCoreTaskTracker agentCoreTaskTracker) {
+		return new AgentCoreInvocationsController(invoker);
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    public AgentCoreTaskTracker agentCoreTaskTracker() {
-        return new AgentCoreTaskTracker();
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public AgentCoreTaskTracker agentCoreTaskTracker() {
+		return new AgentCoreTaskTracker();
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    public AgentCorePingController agentCoreHealthController(AgentCorePingService agentCorePingService) {
-        return new AgentCorePingController(agentCorePingService);
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public AgentCorePingController agentCoreHealthController(AgentCorePingService agentCorePingService) {
+		return new AgentCorePingController(agentCorePingService);
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    public static AgentCoreMethodRegistry agentCoreMethodRegistry() {
-        return new AgentCoreMethodRegistry();
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public static AgentCoreMethodRegistry agentCoreMethodRegistry() {
+		return new AgentCoreMethodRegistry();
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    public static AgentCoreMethodScanner agentCoreMethodScanner(@Lazy AgentCoreMethodRegistry registry) {
-        return new AgentCoreMethodScanner(registry);
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	public static AgentCoreMethodScanner agentCoreMethodScanner(@Lazy AgentCoreMethodRegistry registry) {
+		return new AgentCoreMethodScanner(registry);
+	}
+
 }

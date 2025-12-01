@@ -29,42 +29,42 @@ import org.springframework.stereotype.Service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-    classes = EndToEndJsonIntegrationTest.TestApp.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(classes = EndToEndJsonIntegrationTest.TestApp.class,
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EndToEndJsonIntegrationTest {
 
-    @SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
-    static class TestApp {
-        @Service
-        public static class TestAgentService {
-            @AgentCoreInvocation
-            public String handlePrompt(TestRequest request) {
-                return "E2E Response: " + request.prompt() + " " + request.status();
-            }
-        }
-    }
+	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.autoconfigure")
+	static class TestApp {
 
-    static record TestRequest(String prompt, String status) { }
+		@Service
+		public static class TestAgentService {
 
-    @LocalServerPort
-    private int port;
+			@AgentCoreInvocation
+			public String handlePrompt(TestRequest request) {
+				return "E2E Response: " + request.prompt() + " " + request.status();
+			}
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+		}
 
-    @Test
-    void shouldHandleStringRequest() {
-        var request = new TestRequest("Hello World", "OK");
+	}
 
-        var response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/invocations",
-            request,
-            String.class
-        );
+	static record TestRequest(String prompt, String status) {
+	}
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo("E2E Response: Hello World OK");
-    }
+	@LocalServerPort
+	private int port;
+
+	@Autowired
+	private TestRestTemplate restTemplate;
+
+	@Test
+	void shouldHandleStringRequest() {
+		var request = new TestRequest("Hello World", "OK");
+
+		var response = restTemplate.postForEntity("http://localhost:" + port + "/invocations", request, String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("E2E Response: Hello World OK");
+	}
+
 }

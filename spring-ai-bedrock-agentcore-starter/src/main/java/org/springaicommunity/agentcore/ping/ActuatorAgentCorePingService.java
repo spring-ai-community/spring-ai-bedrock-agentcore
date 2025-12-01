@@ -31,43 +31,48 @@ import org.springframework.stereotype.Service;
 @Service
 public class ActuatorAgentCorePingService implements AgentCorePingService {
 
-    private final HealthEndpoint healthEndpoint;
-    private final AtomicReference<AgentCorePingResponse> cachedResponse = new AtomicReference<>();
-    private final AgentCoreTaskTracker agentCoreTaskTracker;
+	private final HealthEndpoint healthEndpoint;
 
-    public ActuatorAgentCorePingService(HealthEndpoint healthEndpoint, AgentCoreTaskTracker agentCoreTaskTracker) {
-        this.healthEndpoint = healthEndpoint;
-        this.agentCoreTaskTracker = agentCoreTaskTracker;
-    }
+	private final AtomicReference<AgentCorePingResponse> cachedResponse = new AtomicReference<>();
 
-    @Override
-    public AgentCorePingResponse getPingStatus() {
-        try {
-            var health = healthEndpoint.health();
-            var mapping = mapActuatorStatus(health.getStatus().getCode());
-            return updateCachedResponse(mapping.status(), mapping.httpStatus());
-        }
-        catch (Exception e) {
-            return updateCachedResponse(PingStatus.UNHEALTHY, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+	private final AgentCoreTaskTracker agentCoreTaskTracker;
 
-    private AgentCorePingResponse updateCachedResponse(PingStatus status, HttpStatus httpStatus) {
-        return cachedResponse.updateAndGet(current -> {
-            if (current == null || !current.status().equals(status)) {
-                return new AgentCorePingResponse(status, httpStatus, System.currentTimeMillis() / 1000);
-            }
-            return current;
-        });
-    }
+	public ActuatorAgentCorePingService(HealthEndpoint healthEndpoint, AgentCoreTaskTracker agentCoreTaskTracker) {
+		this.healthEndpoint = healthEndpoint;
+		this.agentCoreTaskTracker = agentCoreTaskTracker;
+	}
 
-    private StatusMapping mapActuatorStatus(String statusCode) {
-        return switch (statusCode) {
-            case "UP" -> (agentCoreTaskTracker.getCount() > 0) ?
-                    new StatusMapping(PingStatus.HEALTHY_BUSY, HttpStatus.OK) : new StatusMapping(PingStatus.HEALTHY, HttpStatus.OK);
-            default -> new StatusMapping(PingStatus.UNHEALTHY, HttpStatus.SERVICE_UNAVAILABLE);
-        };
-    }
+	@Override
+	public AgentCorePingResponse getPingStatus() {
+		try {
+			var health = healthEndpoint.health();
+			var mapping = mapActuatorStatus(health.getStatus().getCode());
+			return updateCachedResponse(mapping.status(), mapping.httpStatus());
+		}
+		catch (Exception e) {
+			return updateCachedResponse(PingStatus.UNHEALTHY, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    private record StatusMapping(PingStatus status, HttpStatus httpStatus) { }
+	private AgentCorePingResponse updateCachedResponse(PingStatus status, HttpStatus httpStatus) {
+		return cachedResponse.updateAndGet(current -> {
+			if (current == null || !current.status().equals(status)) {
+				return new AgentCorePingResponse(status, httpStatus, System.currentTimeMillis() / 1000);
+			}
+			return current;
+		});
+	}
+
+	private StatusMapping mapActuatorStatus(String statusCode) {
+		return switch (statusCode) {
+			case "UP" ->
+				(agentCoreTaskTracker.getCount() > 0) ? new StatusMapping(PingStatus.HEALTHY_BUSY, HttpStatus.OK)
+						: new StatusMapping(PingStatus.HEALTHY, HttpStatus.OK);
+			default -> new StatusMapping(PingStatus.UNHEALTHY, HttpStatus.SERVICE_UNAVAILABLE);
+		};
+	}
+
+	private record StatusMapping(PingStatus status, HttpStatus httpStatus) {
+	}
+
 }
