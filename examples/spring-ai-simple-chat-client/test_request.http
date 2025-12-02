@@ -1,0 +1,29 @@
+### Standard Spring Boot Chat Controller
+
+POST http://localhost:8080/ai
+Content-Type: application/json
+
+{ "prompt" : "Hi, how are you?"}
+
+
+### Actuator endpoint
+
+GET http://localhost:8080/actuator/health
+Content-Type: application/json
+
+
+### AgentCore Runtime Invocations endpoint
+
+POST http://localhost:8080/invocations
+Content-Type: application/json
+
+{ "prompt" : "Hi, how are you?"}
+
+
+### AgentCore Runtime Ping endpoint
+
+GET http://localhost:8080/ping
+Content-Type: application/json
+
+
+
