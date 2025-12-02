@@ -40,6 +40,10 @@
             <name>Maximilian Schellhorn</name>
             <email>maschnetwork@pm.me</email>
         </developer>
+        <developer>
+            <name>Andrei Shakirin</name>
+            <email>andrei.shakirin@gmail.com</email>
+        </developer>
     </developers>
 
     <issueManagement>
