@@ -35,6 +35,7 @@ public class ChatAgentService {
         this.agentCoreTaskTracker = agentCoreTaskTracker;
     }
 
+    @AgentCoreInvocation
     public String asyncTaskHandling(MySimpleRequest request, AgentCoreContext agentCoreContext) {
         agentCoreTaskTracker.increment();
         logger.info(agentCoreContext.getHeader(AgentCoreHeaders.SESSION_ID));
@@ -146,7 +147,6 @@ public class ChatAgentService {
     }
 
     // Using File with explicit ResponseEntity
-    @AgentCoreInvocation
     public ResponseEntity<InputStreamResource> generateStreamFromFile(String request) throws URISyntaxException, FileNotFoundException {
         var resourceUrl = this.getClass().getResource("/test-reponse.txt");
         if (resourceUrl == null) {
