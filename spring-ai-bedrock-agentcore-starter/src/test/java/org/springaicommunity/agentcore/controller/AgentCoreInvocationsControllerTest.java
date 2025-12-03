@@ -112,14 +112,15 @@ class AgentCoreInvocationsControllerTest {
 	}
 
 	@Test
-	void shouldHandleBinaryDataOutput() throws Exception {
+	void shouldHandleBinaryDataOutputWithJsonRequest() throws Exception {
 		String binaryData = "Binary response";
 		var response = ResponseEntity.ok()
 			.contentType(MediaType.APPLICATION_OCTET_STREAM)
 			.body((binaryData.getBytes()));
 		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(response);
 
-		mockMvc.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON).content("{\"prompt\":\"test\"}"))
+		mockMvc.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON).content("""
+				{"prompt":"test"}"""))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
 			.andExpect(content().bytes(binaryData.getBytes()));
