@@ -30,6 +30,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -98,6 +99,44 @@ class AgentCoreInvocationsControllerTest {
 			.andExpect(jsonPath("$.result").value("processed"))
 			.andExpect(jsonPath("$.input.key").value("value"))
 			.andExpect(jsonPath("$.input.number").value(42));
+	}
+
+	@Test
+	void shouldHandleTextPlainInput() throws Exception {
+		when(mockInvoker.invokeAgentMethod(eq("plain text input"), any(HttpHeaders.class)))
+			.thenReturn("processed text");
+
+		mockMvc.perform(post("/invocations").contentType(MediaType.TEXT_PLAIN).content("plain text input"))
+			.andExpect(status().isOk())
+			.andExpect(content().string("processed text"));
+	}
+
+	@Test
+	void shouldHandleBinaryDataOutput() throws Exception {
+		String binaryData = "Binary response";
+		var response = ResponseEntity.ok()
+			.contentType(MediaType.APPLICATION_OCTET_STREAM)
+			.body((binaryData.getBytes()));
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(response);
+
+		mockMvc.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON).content("{\"prompt\":\"test\"}"))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+			.andExpect(content().bytes(binaryData.getBytes()));
+	}
+
+	@Test
+	void shouldHandleBinaryDataOutputWithTextInput() throws Exception {
+		String binaryData = "Binary response";
+		var response = ResponseEntity.ok()
+			.contentType(MediaType.APPLICATION_OCTET_STREAM)
+			.body((binaryData.getBytes()));
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(response);
+
+		mockMvc.perform(post("/invocations").contentType(MediaType.TEXT_PLAIN).content("test"))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+			.andExpect(content().bytes(binaryData.getBytes()));
 	}
 
 	@Test

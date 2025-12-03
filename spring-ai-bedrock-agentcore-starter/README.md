@@ -84,6 +84,27 @@ public String handlePrompt(String prompt) {
 }
 ```
 
+### Binary Response with byte[]
+```java
+@AgentCoreInvocation
+public ResponseEntity<byte[]> generateBinaryData(MyRequest request) {
+    return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(("Binary response for: " + request.prompt()).getBytes());
+}
+```
+
+### Binary Streaming with InputStream
+```java
+@AgentCoreInvocation
+public ResponseEntity<InputStreamResource> streamBinaryData(String prompt) {
+    InputStream stream = new ByteArrayInputStream(("Stream: " + prompt).getBytes());
+    return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(new InputStreamResource(stream));
+}
+```
+
 ### SSE Streaming with Spring AI
 ```java
 @AgentCoreInvocation
