@@ -8,12 +8,17 @@ import org.springaicommunity.agentcore.context.AgentCoreContext;
 import org.springaicommunity.agentcore.context.AgentCoreHeaders;
 import org.springaicommunity.agentcore.ping.AgentCoreTaskTracker;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +35,6 @@ public class ChatAgentService {
         this.agentCoreTaskTracker = agentCoreTaskTracker;
     }
 
-    @AgentCoreInvocation
     public String asyncTaskHandling(MySimpleRequest request, AgentCoreContext agentCoreContext) {
         agentCoreTaskTracker.increment();
         logger.info(agentCoreContext.getHeader(AgentCoreHeaders.SESSION_ID));
@@ -139,6 +143,23 @@ public class ChatAgentService {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new InputStreamResource(stream));
+    }
+
+    // Using File with explicit ResponseEntity
+    @AgentCoreInvocation
+    public ResponseEntity<InputStreamResource> generateStreamFromFile(String request) throws URISyntaxException, FileNotFoundException {
+        var resourceUrl = this.getClass().getResource("/test-reponse.txt");
+        if (resourceUrl == null) {
+            throw new FileNotFoundException("Resource file not found: test-reponse.txt");
+        }
+        File file = new File(resourceUrl.toURI());
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"test-reponse.txt\"")
+                .contentLength(file.length())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     @PreDestroy
