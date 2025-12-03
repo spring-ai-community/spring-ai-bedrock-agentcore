@@ -7,9 +7,13 @@ import org.springaicommunity.agentcore.annotation.AgentCoreInvocation;
 import org.springaicommunity.agentcore.context.AgentCoreContext;
 import org.springaicommunity.agentcore.context.AgentCoreHeaders;
 import org.springaicommunity.agentcore.ping.AgentCoreTaskTracker;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -117,6 +121,24 @@ public class ChatAgentService {
             }
         });
         return emitter;
+    }
+
+    // byte[] with explicit ResponseEntity
+    public ResponseEntity<byte[]> generateBinaryDataWithResponseEntity(MySimpleRequest request) {
+        logger.info("Generating binary data with ResponseEntity for request: {}", request.prompt());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(("Binary response for: " + request.prompt()).getBytes());
+    }
+
+    // InputStream with explicit ResponseEntity
+    public ResponseEntity<InputStreamResource> generateByteStreamWithStringArgument(String request) {
+        logger.info("Generating byte stream for request: {}", request);
+        String response = "Binary stream response for: " + request;
+        java.io.InputStream stream = new ByteArrayInputStream(response.getBytes());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(new InputStreamResource(stream));
     }
 
     @PreDestroy

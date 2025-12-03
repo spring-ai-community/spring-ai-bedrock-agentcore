@@ -42,14 +42,16 @@ public class AgentCoreInvocationsController {
 	}
 
 	@PostMapping(value = "/invocations", consumes = MediaType.APPLICATION_JSON_VALUE,
-			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE })
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE,
+					MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Object handleJsonInvocation(@RequestBody Object request, @RequestHeader HttpHeaders headers)
 			throws Exception {
 		return handleInvocation(request, headers);
 	}
 
 	@PostMapping(value = "/invocations", consumes = MediaType.TEXT_PLAIN_VALUE,
-			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE })
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE,
+					MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Object handleTextInvocation(@RequestBody String request, @RequestHeader HttpHeaders headers)
 			throws Exception {
 		return handleInvocation(request, headers);
