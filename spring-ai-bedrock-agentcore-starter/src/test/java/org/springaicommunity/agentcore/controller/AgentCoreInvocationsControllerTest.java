@@ -112,7 +112,23 @@ class AgentCoreInvocationsControllerTest {
 	}
 
 	@Test
-	void shouldHandleBinaryDataOutputWithJsonRequest() throws Exception {
+	void shouldHandleBinaryDataOutputWithJsonInput() throws Exception {
+		String binaryData = "Binary response";
+		var response = binaryData.getBytes();
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(response);
+
+		mockMvc
+			.perform(post("/invocations").contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_OCTET_STREAM)
+				.content("""
+						{"prompt":"test"}"""))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+			.andExpect(content().bytes(binaryData.getBytes()));
+	}
+
+	@Test
+	void shouldHandleWrappedBinaryDataOutputWithJsonInput() throws Exception {
 		String binaryData = "Binary response";
 		var response = ResponseEntity.ok()
 			.contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -128,6 +144,21 @@ class AgentCoreInvocationsControllerTest {
 
 	@Test
 	void shouldHandleBinaryDataOutputWithTextInput() throws Exception {
+		String binaryData = "Binary response";
+		var response = binaryData.getBytes();
+		when(mockInvoker.invokeAgentMethod(any(), any(HttpHeaders.class))).thenReturn(response);
+
+		mockMvc
+			.perform(post("/invocations").contentType(MediaType.TEXT_PLAIN)
+				.accept(MediaType.APPLICATION_OCTET_STREAM)
+				.content("test"))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+			.andExpect(content().bytes(binaryData.getBytes()));
+	}
+
+	@Test
+	void shouldHandleWrappedBinaryDataOutputWithTextInput() throws Exception {
 		String binaryData = "Binary response";
 		var response = ResponseEntity.ok()
 			.contentType(MediaType.APPLICATION_OCTET_STREAM)

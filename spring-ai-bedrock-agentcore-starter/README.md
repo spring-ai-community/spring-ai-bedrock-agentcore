@@ -85,6 +85,15 @@ public String handlePrompt(String prompt) {
 ```
 
 ### Binary Response with byte[]
+#### Option A: return byte[] directly, requires to add parameter "--accept" with value "application/octet-stream" in invoke-agent-runtime
+```java
+@AgentCoreInvocation
+public byte[] generateBinaryData(MyRequest request) {
+  return ("Binary response for: " + request.prompt()).getBytes();
+}
+```
+
+#### Option B: wrap byte[] into ResponseEntity
 ```java
 @AgentCoreInvocation
 public ResponseEntity<byte[]> generateBinaryData(MyRequest request) {
@@ -95,6 +104,16 @@ public ResponseEntity<byte[]> generateBinaryData(MyRequest request) {
 ```
 
 ### Binary Streaming with InputStream
+#### Option A: return InputStreamResource directly, requires to add parameter "--accept" with value "application/octet-stream" in invoke-agent-runtime
+```java
+@AgentCoreInvocation
+public InputStreamResource streamBinaryData(String prompt) {
+  InputStream stream = new ByteArrayInputStream(("Stream: " + prompt).getBytes());
+  return new InputStreamResource(stream);
+}
+```
+
+#### Option B: wrap InputStreamResource into ResponseEntity
 ```java
 @AgentCoreInvocation
 public ResponseEntity<InputStreamResource> streamBinaryData(String prompt) {

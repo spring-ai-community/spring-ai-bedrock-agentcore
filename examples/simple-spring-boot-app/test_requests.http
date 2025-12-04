@@ -14,6 +14,23 @@ X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: something
 
 "Simple prompt as string"
 
+### Invocations with application/json with application/octet-stream response
+
+POST http://localhost:8080/invocations
+Content-Type: application/json
+Accept: application/octet-stream
+X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: something
+
+{ "prompt" : "Hi, how are you?"}
+
+### Invocations with text/plain with application/octet-stream response
+
+POST http://localhost:8080/invocations
+Content-Type: text/plain
+Accept: application/octet-stream
+X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: something
+
+"Simple prompt as string"
 
 ### Ping endpoint
 
