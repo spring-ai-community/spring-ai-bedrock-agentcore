@@ -87,6 +87,7 @@ PAYLOAD='{"prompt":"'"$PROMPT"'"}'
 
 RESPONSE=$(curl -s -X POST "$PUBLIC_URL" \
     -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
     -H "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: $SESSION_ID" \
     -H "X-Amzn-Bedrock-AgentCore-Runtime-User-Id: $USERNAME" \

@@ -39,6 +39,7 @@ PAYLOAD_B64=$(echo -n "$PAYLOAD_JSON" | base64)
 aws bedrock-agentcore invoke-agent-runtime \
     --agent-runtime-arn "$AGENT_RUNTIME_ARN" \
     --content-type "application/json" \
+    --accept "application/json" \
     --runtime-session-id "$SESSION_ID" \
     --runtime-user-id "iam-user" \
     --qualifier "DEFAULT" \
