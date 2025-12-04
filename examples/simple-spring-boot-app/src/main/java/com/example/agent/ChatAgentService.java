@@ -128,7 +128,14 @@ public class ChatAgentService {
         return emitter;
     }
 
-    // byte[] with explicit ResponseEntity
+    // Return byte[] directly, requires to set "accept" parameter with value "application/octet-stream" in invoke-agent-runtime
+    public byte[] generateBinaryDataWithByteArray(MySimpleRequest request) {
+        logger.info("Generating binary data with ResponseEntity for request: {}", request.prompt());
+        var response = "Binary response for: " + request.prompt();
+        return response.getBytes();
+    }
+
+    // Return byte[] wrapped into ResponseEntity
     public ResponseEntity<byte[]> generateBinaryDataWithResponseEntity(MySimpleRequest request) {
         logger.info("Generating binary data with ResponseEntity for request: {}", request.prompt());
         return ResponseEntity.ok()
@@ -136,8 +143,16 @@ public class ChatAgentService {
                 .body(("Binary response for: " + request.prompt()).getBytes());
     }
 
-    // InputStream with explicit ResponseEntity
-    public ResponseEntity<InputStreamResource> generateByteStreamWithStringArgument(String request) {
+    // Return InputStreamResource directly, requires to set "accept" parameter with value "application/octet-stream" in invoke-agent-runtime
+    public InputStreamResource generateByteStreamForText(String request) {
+        logger.info("Generating byte stream for request: {}", request);
+        String response = "Binary stream response for: " + request;
+        java.io.InputStream stream = new ByteArrayInputStream(response.getBytes());
+        return new InputStreamResource(stream);
+    }
+
+    // InputStream wrapped into ResponseEntity
+    public ResponseEntity<InputStreamResource> generateByteStreamWithResponseEntityForText(String request) {
         logger.info("Generating byte stream for request: {}", request);
         String response = "Binary stream response for: " + request;
         java.io.InputStream stream = new ByteArrayInputStream(response.getBytes());
