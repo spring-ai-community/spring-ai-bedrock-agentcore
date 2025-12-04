@@ -7,7 +7,7 @@ RUN addgroup -S appuser && adduser -S appuser -G appuser
 WORKDIR /app
 
 # Copy JAR file
-COPY target/simple-agent-app-1.0.0.jar app.jar
+COPY target/simple-agent-app-1.0.0-SNAPSHOT.jar app.jar
 
 # Change ownership to non-root user
 RUN chown appuser:appuser /app/app.jar
