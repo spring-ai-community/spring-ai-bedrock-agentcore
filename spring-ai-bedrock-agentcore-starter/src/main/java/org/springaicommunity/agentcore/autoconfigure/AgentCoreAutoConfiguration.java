@@ -19,7 +19,9 @@ package org.springaicommunity.agentcore.autoconfigure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springaicommunity.agentcore.annotation.AgentCoreInvocation;
 import org.springaicommunity.agentcore.controller.AgentCoreInvocationsController;
+import org.springaicommunity.agentcore.controller.AgentCoreInvocationsHandler;
 import org.springaicommunity.agentcore.controller.AgentCorePingController;
+import org.springaicommunity.agentcore.controller.AgentCorePingHandler;
 import org.springaicommunity.agentcore.ping.AgentCorePingService;
 import org.springaicommunity.agentcore.ping.AgentCoreTaskTracker;
 import org.springaicommunity.agentcore.service.AgentCoreMethodInvoker;
@@ -57,9 +59,8 @@ public class AgentCoreAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
-	public AgentCoreInvocationsController agentCoreController(AgentCoreMethodInvoker invoker,
-			AgentCoreTaskTracker agentCoreTaskTracker) {
+	@ConditionalOnMissingBean(AgentCoreInvocationsHandler.class)
+	public AgentCoreInvocationsController agentCoreController(AgentCoreMethodInvoker invoker) {
 		return new AgentCoreInvocationsController(invoker);
 	}
 
@@ -70,7 +71,7 @@ public class AgentCoreAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(AgentCorePingHandler.class)
 	public AgentCorePingController agentCoreHealthController(AgentCorePingService agentCorePingService) {
 		return new AgentCorePingController(agentCorePingService);
 	}

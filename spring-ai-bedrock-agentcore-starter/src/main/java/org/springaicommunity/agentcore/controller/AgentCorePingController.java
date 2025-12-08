@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  * REST controller implementing the AgentCore /ping health check endpoint.
  */
 @RestController
-public class AgentCorePingController {
+public class AgentCorePingController implements AgentCorePingHandler {
 
 	private final AgentCorePingService agentCorePingService;
 

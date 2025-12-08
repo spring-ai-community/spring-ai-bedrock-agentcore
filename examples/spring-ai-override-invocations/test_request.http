@@ -1,0 +1,5 @@
+POST http://localhost:8080/invocations
+Content-Type: application/json
+Accept: application/octet-stream
+
+"Tell me about Spring AI in detail."
