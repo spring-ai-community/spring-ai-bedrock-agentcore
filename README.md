@@ -207,6 +207,46 @@ Rate limits are applied per client IP address and reset every minute.
 }
 ```
 
+## Custom Controller Override
+
+The starter provides marker interfaces to override the default auto-configured controllers with custom implementations:
+
+### Override Invocations Controller
+
+Implement `AgentCoreInvocationsHandler` to provide custom `/invocations` endpoint handling:
+
+```java
+@RestController
+public class CustomInvocationsController implements AgentCoreInvocationsHandler {
+    
+    @PostMapping("/invocations")
+    public ResponseEntity<?> handleInvocations(@RequestBody String request) {
+        // Custom invocation logic
+        return ResponseEntity.ok("Custom response");
+    }
+}
+```
+
+### Override Ping Controller
+
+Implement `AgentCorePingHandler` to provide custom `/ping` endpoint handling:
+
+```java
+@RestController
+public class CustomPingController implements AgentCorePingHandler {
+    
+    @GetMapping("/ping")
+    public ResponseEntity<?> ping() {
+        // Custom health check logic
+        return ResponseEntity.ok(Map.of("status", "Custom Healthy"));
+    }
+}
+```
+
+When these marker interfaces are implemented, the corresponding auto-configured controllers are automatically disabled.
+
+See `examples/spring-ai-override-invocations/` for a complete working example.
+
 ## Examples
 
 See the `examples/` directory for complete working examples:
@@ -214,6 +254,7 @@ See the `examples/` directory for complete working examples:
 - **`simple-spring-boot-app/`** - Minimal AgentCore agent with async task tracking
 - **`spring-ai-sse-chat-client/`** - SSE streaming with Spring AI and Amazon Bedrock
 - **`spring-ai-simple-chat-client/`** - Traditional Spring AI integration (without AgentCore starter)
+- **`spring-ai-override-invocations/`** - Custom controller override using marker interfaces
 
 ## Requirements
 
