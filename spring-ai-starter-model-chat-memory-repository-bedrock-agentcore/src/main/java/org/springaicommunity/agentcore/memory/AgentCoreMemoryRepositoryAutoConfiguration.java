@@ -12,19 +12,17 @@ import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 @Import(AgentCoreMemoryRepositoryConfiguration.class)
 public class AgentCoreMemoryRepositoryAutoConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean
-    BedrockAgentCoreClient bedrockAgentCoreClient() {
-        return BedrockAgentCoreClient.create();
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	BedrockAgentCoreClient bedrockAgentCoreClient() {
+		return BedrockAgentCoreClient.create();
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    AgentCoreMemoryRepository memoryRepository(
-            AgentCoreMemoryRepositoryConfiguration configuration,
-            BedrockAgentCoreClient client
-            ) {
-        return new AgentCoreMemoryRepository(configuration.getMemoryId(), client);
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	AgentCoreMemoryRepository memoryRepository(AgentCoreMemoryRepositoryConfiguration configuration,
+			BedrockAgentCoreClient client) {
+		return new AgentCoreMemoryRepository(configuration.getMemoryId(), client);
+	}
 
 }

@@ -7,14 +7,14 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "agentcore.memory")
 public class AgentCoreMemoryRepositoryConfiguration {
 
-    private String memoryId;
+	private String memoryId;
 
-    public void setMemoryId(String memoryId) {
-        this.memoryId = memoryId;
-    }
+	public void setMemoryId(String memoryId) {
+		this.memoryId = memoryId;
+	}
 
-    public String getMemoryId() {
-        return memoryId;
-    }
+	public String getMemoryId() {
+		return memoryId;
+	}
 
 }
