@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-public class AgentCoreInvocationsController {
+public class AgentCoreInvocationsController implements AgentCoreInvocationsHandler {
 
 	private final AgentCoreMethodInvoker invoker;
 
