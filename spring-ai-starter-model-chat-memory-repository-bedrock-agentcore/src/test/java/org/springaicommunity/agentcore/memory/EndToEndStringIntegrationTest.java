@@ -16,6 +16,7 @@
 
 package org.springaicommunity.agentcore.memory;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -25,23 +26,55 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import software.amazon.awssdk.services.bedrockagentcorecontrol.BedrockAgentCoreControlClient;
+import software.amazon.awssdk.services.bedrockagentcorecontrol.model.CreateMemoryRequest;
+import software.amazon.awssdk.services.bedrockagentcorecontrol.model.DeleteMemoryRequest;
+import software.amazon.awssdk.services.bedrockagentcorecontrol.model.GetMemoryRequest;
+import software.amazon.awssdk.services.bedrockagentcorecontrol.model.MemoryStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = EndToEndIntegrationTest.TestApp.class,
-		properties = { "agentcore.memory.memory-id=test_memory_1-SYnXWsA0Sj",
-				// "spring.ai.bedrock.converse.chat.enabled=true",
-				"spring.ai.bedrock.converse.chat.options.model=global.amazon.nova-2-lite-v1:0" })
+		properties = { "spring.ai.bedrock.converse.chat.options.model=global.amazon.nova-2-lite-v1:0" })
+@ContextConfiguration(initializers = EndToEndIntegrationTest.MemoryInitializer.class)
 class EndToEndIntegrationTest {
 
-	/*
-	 * static String memoryId;
-	 *
-	 * static BedrockAgentCoreControlClient client =
-	 * BedrockAgentCoreControlClient.create();
-	 *
-	 *
-	 */
+	static String memoryId;
+	static BedrockAgentCoreControlClient client = BedrockAgentCoreControlClient.create();
+
+	static class MemoryInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		@Override
+		public void initialize(ConfigurableApplicationContext context) {
+			try {
+				var createMemoryRequest = CreateMemoryRequest.builder()
+					.name("test_memory_" + System.currentTimeMillis())
+					.eventExpiryDuration(100)
+					.build();
+				var createMemoryResponse = client.createMemory(createMemoryRequest);
+				memoryId = createMemoryResponse.memory().id();
+
+				var memoryCreated = false;
+				while (!memoryCreated) {
+					System.out.println("Waiting for memory to be ACTIVE...");
+					var getMemoryRequest = GetMemoryRequest.builder().memoryId(memoryId).build();
+					var getMemoryResponse = client.getMemory(getMemoryRequest);
+					memoryCreated = getMemoryResponse.memory().status() == MemoryStatus.ACTIVE;
+					Thread.sleep(3000);
+				}
+
+				context.getEnvironment().getSystemProperties().put("agentcore.memory.memory-id", memoryId);
+			}
+			catch (Exception e) {
+				throw new RuntimeException("Failed to create memory", e);
+			}
+		}
+
+	}
+
 	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.memory")
 	static class TestApp {
 
@@ -62,31 +95,13 @@ class EndToEndIntegrationTest {
 	@Autowired
 	private ChatModel chatModel;
 
-	/*
-	 * // todo: de-dupe
-	 *
-	 * @BeforeAll public static void setup() throws InterruptedException { var
-	 * createMemoryRequest = CreateMemoryRequest.builder() .name("test_memory_2")
-	 * .eventExpiryDuration(100) // todo: file bug for this taking an integer .build();
-	 * var createMemoryResponse = client.createMemory(createMemoryRequest);
-	 *
-	 * memoryId = createMemoryResponse.memory().id();
-	 *
-	 * var memoryCreated = false;
-	 *
-	 * // todo: timeout potentially with www.awaitility.org while (!memoryCreated) {
-	 * System.out.println("Waiting for memory to be ACTIVE..."); var getMemoryRequest =
-	 * GetMemoryRequest.builder().memoryId(memoryId).build(); var getMemoryResponse =
-	 * client.getMemory(getMemoryRequest); memoryCreated =
-	 * getMemoryResponse.memory().status() == MemoryStatus.ACTIVE; Thread.sleep(3000); } }
-	 *
-	 * @AfterAll public static void teardown() { System.out.println("Deleting memory: " +
-	 * memoryId); var deleteMemoryRequest =
-	 * DeleteMemoryRequest.builder().memoryId(memoryId).build(); var deleteMemoryResponse
-	 * = client.deleteMemory(deleteMemoryRequest); System.out.println("Deleted memory: " +
-	 * deleteMemoryResponse.statusAsString()); }
-	 *
-	 */
+	@AfterAll
+	static void teardown() {
+		System.out.println("Deleting memory: " + memoryId);
+		var deleteMemoryRequest = DeleteMemoryRequest.builder().memoryId(memoryId).build();
+		var deleteMemoryResponse = client.deleteMemory(deleteMemoryRequest);
+		System.out.println("Deleted memory: " + deleteMemoryResponse.statusAsString());
+	}
 
 	@Test
 	void shouldHandleStringRequest() {
