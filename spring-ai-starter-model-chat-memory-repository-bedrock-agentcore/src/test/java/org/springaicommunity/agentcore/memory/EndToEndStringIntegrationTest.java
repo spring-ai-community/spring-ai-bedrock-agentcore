@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 
-@Disabled("Running the test required access to AWS account: test creates Agent Core memory")
+@Disabled("Running the test requires access to an AWS account. It creates Agent Core memory and may take about 2–3 minutes")
 @SpringBootTest(classes = EndToEndIntegrationTest.TestApp.class,
 		properties = { "spring.ai.bedrock.converse.chat.options.model=global.amazon.nova-2-lite-v1:0" })
 @ContextConfiguration(initializers = EndToEndIntegrationTest.MemoryInitializer.class)

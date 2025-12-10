@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 
-@Disabled("Running the test required access to AWS account: test creates Agent Core memory")
+@Disabled("Running the test requires access to an AWS account. It creates Agent Core memory and may take about 2–3 minutes")
 public class AgentCoreMemoryRepositoryIntegrationTest {
 
 	static String memoryId;
