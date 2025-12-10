@@ -17,6 +17,7 @@
 package org.springaicommunity.agentcore.memory;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -36,7 +37,10 @@ import software.amazon.awssdk.services.bedrockagentcorecontrol.model.GetMemoryRe
 import software.amazon.awssdk.services.bedrockagentcorecontrol.model.MemoryStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import java.time.Duration;
 
+@Disabled("Running the test required access to AWS account: test creates Agent Core memory")
 @SpringBootTest(classes = EndToEndIntegrationTest.TestApp.class,
 		properties = { "spring.ai.bedrock.converse.chat.options.model=global.amazon.nova-2-lite-v1:0" })
 @ContextConfiguration(initializers = EndToEndIntegrationTest.MemoryInitializer.class)
@@ -57,14 +61,12 @@ class EndToEndIntegrationTest {
 				var createMemoryResponse = client.createMemory(createMemoryRequest);
 				memoryId = createMemoryResponse.memory().id();
 
-				var memoryCreated = false;
-				while (!memoryCreated) {
+				await().atMost(Duration.ofMinutes(5)).pollInterval(Duration.ofSeconds(3)).until(() -> {
 					System.out.println("Waiting for memory to be ACTIVE...");
 					var getMemoryRequest = GetMemoryRequest.builder().memoryId(memoryId).build();
 					var getMemoryResponse = client.getMemory(getMemoryRequest);
-					memoryCreated = getMemoryResponse.memory().status() == MemoryStatus.ACTIVE;
-					Thread.sleep(3000);
-				}
+					return getMemoryResponse.memory().status() == MemoryStatus.ACTIVE;
+				});
 
 				context.getEnvironment().getSystemProperties().put("agentcore.memory.memory-id", memoryId);
 			}
@@ -77,15 +79,6 @@ class EndToEndIntegrationTest {
 
 	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.memory")
 	static class TestApp {
-
-		/*
-		 * public static class TestAgent { private final AgentCoreMemoryRepository
-		 * memoryRepository;
-		 *
-		 * public TestAgent(AgentCoreMemoryRepository memoryRepository) {
-		 * this.memoryRepository = memoryRepository; } }
-		 *
-		 */
 
 	}
 

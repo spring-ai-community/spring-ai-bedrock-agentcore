@@ -2,6 +2,7 @@ package org.springaicommunity.agentcore.memory;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
@@ -17,7 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import java.time.Duration;
 
+@Disabled("Running the test required access to AWS account: test creates Agent Core memory")
 public class AgentCoreMemoryRepositoryIntegrationTest {
 
 	static String memoryId;
@@ -34,16 +38,12 @@ public class AgentCoreMemoryRepositoryIntegrationTest {
 
 		memoryId = createMemoryResponse.memory().id();
 
-		var memoryCreated = false;
-
-		// todo: timeout potentially with www.awaitility.org
-		while (!memoryCreated) {
+		await().atMost(Duration.ofMinutes(5)).pollInterval(Duration.ofSeconds(3)).until(() -> {
 			System.out.println("Waiting for memory to be ACTIVE...");
 			var getMemoryRequest = GetMemoryRequest.builder().memoryId(memoryId).build();
 			var getMemoryResponse = client.getMemory(getMemoryRequest);
-			memoryCreated = getMemoryResponse.memory().status() == MemoryStatus.ACTIVE;
-			Thread.sleep(3000);
-		}
+			return getMemoryResponse.memory().status() == MemoryStatus.ACTIVE;
+		});
 	}
 
 	@AfterAll
