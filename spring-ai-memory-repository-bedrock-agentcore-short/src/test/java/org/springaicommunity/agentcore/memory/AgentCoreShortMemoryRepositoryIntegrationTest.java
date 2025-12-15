@@ -22,7 +22,7 @@ import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 
 @Disabled("Running the test requires access to an AWS account. It creates Agent Core memory and may take about 2–3 minutes")
-public class AgentCoreMemoryRepositoryIntegrationTest {
+public class AgentCoreShortMemoryRepositoryIntegrationTest {
 
 	static String memoryId;
 
@@ -57,7 +57,7 @@ public class AgentCoreMemoryRepositoryIntegrationTest {
 	@Test
 	public void createAndFetchMemories() {
 		var bedrockAgentCoreClient = BedrockAgentCoreClient.create();
-		var agentCoreMemoryRepository = new AgentCoreMemoryRepository(memoryId, bedrockAgentCoreClient);
+		var agentCoreMemoryRepository = new AgentCoreShortMemoryRepository(memoryId, bedrockAgentCoreClient);
 		List<Message> messages = List.of(UserMessage.builder().text("hello").build());
 
 		agentCoreMemoryRepository.saveAll("testActorId/testSessionId", messages);
@@ -70,7 +70,7 @@ public class AgentCoreMemoryRepositoryIntegrationTest {
 	@Test
 	public void testChatMemory() {
 		var bedrockAgentCoreClient = BedrockAgentCoreClient.create();
-		var agentCoreMemoryRepository = new AgentCoreMemoryRepository(memoryId, bedrockAgentCoreClient);
+		var agentCoreMemoryRepository = new AgentCoreShortMemoryRepository(memoryId, bedrockAgentCoreClient);
 
 		var chatMemory = MessageWindowChatMemory.builder()
 			.chatMemoryRepository(agentCoreMemoryRepository)

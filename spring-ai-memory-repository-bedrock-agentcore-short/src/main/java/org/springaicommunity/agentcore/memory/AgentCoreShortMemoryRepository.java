@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.bedrockagentcore.model.*;
 import java.time.Instant;
 import java.util.List;
 
-public class AgentCoreMemoryRepository implements ChatMemoryRepository {
+public class AgentCoreShortMemoryRepository implements ChatMemoryRepository {
 
 	private static final String DEFAULT_SESSION = "default-session";
 
@@ -18,7 +18,7 @@ public class AgentCoreMemoryRepository implements ChatMemoryRepository {
 
 	private final String memoryId;
 
-	public AgentCoreMemoryRepository(String memoryId, BedrockAgentCoreClient client) {
+	public AgentCoreShortMemoryRepository(String memoryId, BedrockAgentCoreClient client) {
 		this.memoryId = memoryId;
 		this.client = client;
 	}

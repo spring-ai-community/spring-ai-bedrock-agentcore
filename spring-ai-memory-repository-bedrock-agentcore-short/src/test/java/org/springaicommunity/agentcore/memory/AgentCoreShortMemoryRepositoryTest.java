@@ -20,16 +20,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AgentCoreMemoryRepositoryTest {
+public class AgentCoreShortMemoryRepositoryTest {
 
 	@Mock
 	private BedrockAgentCoreClient client;
 
-	private AgentCoreMemoryRepository memoryRepository;
+	private AgentCoreShortMemoryRepository memoryRepository;
 
 	@BeforeEach
 	void setUp() {
-		memoryRepository = new AgentCoreMemoryRepository("testMemoryId", client);
+		memoryRepository = new AgentCoreShortMemoryRepository("testMemoryId", client);
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class AgentCoreMemoryRepositoryTest {
 
 	@Test
 	void shouldParseActorAndSessionWithSeparator() {
-		var result = AgentCoreMemoryRepository.actorAndSession("actor123:session456");
+		var result = AgentCoreShortMemoryRepository.actorAndSession("actor123:session456");
 
 		assertEquals("actor123", result.actor());
 		assertEquals("session456", result.session());
@@ -88,7 +88,7 @@ public class AgentCoreMemoryRepositoryTest {
 
 	@Test
 	void shouldUseDefaultSessionWhenNoSeparator() {
-		var result = AgentCoreMemoryRepository.actorAndSession("actor123");
+		var result = AgentCoreShortMemoryRepository.actorAndSession("actor123");
 
 		assertEquals("actor123", result.actor());
 		assertEquals("default-session", result.session());

@@ -6,11 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 
-// potentially auto-create memory if it doesn't exist
-//   But startup will then take minutes and the application shouldn't be "ready" until the memory is created
 @Configuration
-@Import(AgentCoreMemoryRepositoryConfiguration.class)
-public class AgentCoreMemoryRepositoryAutoConfiguration {
+@Import(AgentCoreShortMemoryRepositoryConfiguration.class)
+public class AgentCoreShortMemoryRepositoryAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -20,9 +18,9 @@ public class AgentCoreMemoryRepositoryAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	AgentCoreMemoryRepository memoryRepository(AgentCoreMemoryRepositoryConfiguration configuration,
+	AgentCoreShortMemoryRepository memoryRepository(AgentCoreShortMemoryRepositoryConfiguration configuration,
 			BedrockAgentCoreClient client) {
-		return new AgentCoreMemoryRepository(configuration.getMemoryId(), client);
+		return new AgentCoreShortMemoryRepository(configuration.getMemoryId(), client);
 	}
 
 }

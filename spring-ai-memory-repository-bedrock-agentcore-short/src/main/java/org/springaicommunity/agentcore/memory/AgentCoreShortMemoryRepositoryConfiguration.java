@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "agentcore.memory")
-public class AgentCoreMemoryRepositoryConfiguration {
+public class AgentCoreShortMemoryRepositoryConfiguration {
 
 	private String memoryId;
 

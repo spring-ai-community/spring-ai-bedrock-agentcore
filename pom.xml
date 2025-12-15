@@ -12,7 +12,7 @@
     <url>https://github.com/spring-ai-community/spring-ai-bedrock-agentcore</url>
     <modules>
         <module>spring-ai-bedrock-agentcore-starter</module>
-        <module>spring-ai-starter-model-chat-memory-repository-bedrock-agentcore</module>
+        <module>spring-ai-memory-repository-bedrock-agentcore-short</module>
     </modules>
 
     <scm>

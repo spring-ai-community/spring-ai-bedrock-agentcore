@@ -83,7 +83,7 @@ class EndToEndIntegrationTest {
 	}
 
 	@Autowired
-	private AgentCoreMemoryRepository chatMemoryRepository;
+	private AgentCoreShortMemoryRepository chatMemoryRepository;
 
 	@Autowired
 	private ChatModel chatModel;
