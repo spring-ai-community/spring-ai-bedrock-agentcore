@@ -1,37 +1,67 @@
 package org.springaicommunity.agentcore.memory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 import software.amazon.awssdk.services.bedrockagentcore.model.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 public class AgentCoreShortMemoryRepository implements ChatMemoryRepository {
 
-	private static final String DEFAULT_SESSION = "default-session";
+	private static final Logger logger = LoggerFactory.getLogger(AgentCoreShortMemoryRepository.class);
 
 	private final BedrockAgentCoreClient client;
 
 	private final String memoryId;
 
-	public AgentCoreShortMemoryRepository(String memoryId, BedrockAgentCoreClient client) {
-		this.memoryId = memoryId;
+	private final Integer totalEventsLimit;
+
+	private final String defaultSession;
+
+	private final int pageSize;
+
+	private final boolean ignoreUnknownRoles;
+
+	public AgentCoreShortMemoryRepository(String memoryId, BedrockAgentCoreClient client, Integer totalEventsLimit,
+			String defaultSession, int pageSize, boolean ignoreUnknownRoles) {
+		this.memoryId = validateMemoryId(memoryId);
 		this.client = client;
+		this.totalEventsLimit = totalEventsLimit;
+		this.defaultSession = defaultSession;
+		this.pageSize = pageSize;
+		this.ignoreUnknownRoles = ignoreUnknownRoles;
 	}
 
 	record ActorAndSession(String actor, String session) {
 	}
 
-	static ActorAndSession actorAndSession(String conversationId) {
+	private String validateMemoryId(String memoryId) {
+		if (memoryId == null || memoryId.trim().isEmpty()) {
+			throw new IllegalArgumentException("MemoryId cannot be null or empty");
+		}
+		return memoryId;
+	}
+
+	private void validateConversationId(String conversationId) {
+		if (conversationId == null || conversationId.trim().isEmpty()) {
+			throw new IllegalArgumentException("ConversationId cannot be null or empty");
+		}
+	}
+
+	ActorAndSession actorAndSession(String conversationId) {
 		if (conversationId.contains(":")) {
 			var parts = conversationId.split(":");
 			return new ActorAndSession(parts[0], parts[1]);
 		}
-		return new ActorAndSession(conversationId, DEFAULT_SESSION);
+		return new ActorAndSession(conversationId, defaultSession);
 	}
 
 	@Override
@@ -41,87 +71,164 @@ public class AgentCoreShortMemoryRepository implements ChatMemoryRepository {
 
 	@Override
 	public List<Message> findByConversationId(String conversationId) {
-		var actorAndSession = actorAndSession(conversationId);
+		validateConversationId(conversationId);
+		logger.debug("Finding messages for conversation: {}", conversationId);
 
-		var listEventsRequest = ListEventsRequest.builder()
-			.actorId(actorAndSession.actor())
-			.sessionId(actorAndSession.session())
-			.memoryId(memoryId) // todo: from config
-			.includePayloads(true)
-			.maxResults(100) // todo: not sure how to manage this other than config but if
-								// a window size is larger than the config, messages will
-								// be lost
-			.build();
+		try {
+			var actorAndSession = actorAndSession(conversationId);
+			var allEvents = fetchAllEvents(actorAndSession);
 
-		var listEventsResponse = client.listEvents(listEventsRequest);
+			var messages = allEvents.stream()
+				.flatMap(event -> event.payload()
+					.stream()
+					.map(payload -> (Message) switch (payload.conversational().role()) {
+						case ASSISTANT -> new AssistantMessage(payload.conversational().content().text());
+						case USER -> new UserMessage(payload.conversational().content().text());
+						default -> {
+							if (ignoreUnknownRoles) {
+								logger.warn("Ignoring unknown role: {}", payload.conversational().role());
+								yield null;
+							}
+							else {
+								throw new IllegalStateException("Unsupported role: " + payload.conversational().role());
+							}
+						}
+					}))
+				.filter(Objects::nonNull)
+				.collect(java.util.stream.Collectors.toList());
 
-		return listEventsResponse.events()
-			.stream()
-			.flatMap(event -> event.payload().stream().map(payload -> switch (payload.conversational().role()) {
-				case ASSISTANT -> new AssistantMessage(payload.conversational().content().text());
-				case USER -> new UserMessage(payload.conversational().content().text());
-				// todo: handle other roles & potentially configurable
-				default -> throw new IllegalStateException("Unexpected value: " + payload.conversational().role());
-			}))
-			.collect(java.util.stream.Collectors.toList());
+			logger.debug("Retrieved {} messages for conversation: {}", messages.size(), conversationId);
+			return messages;
+		}
+		catch (SdkException e) {
+			logger.error("Failed to retrieve messages for conversation: {}", conversationId, e);
+			throw new AgentCoreMemoryException("Failed to retrieve messages for conversation: " + conversationId, e);
+		}
+	}
+
+	private List<Event> fetchAllEvents(ActorAndSession actorAndSession) {
+		var allEvents = new java.util.ArrayList<Event>();
+		String nextToken = null;
+		int requestPageSize = totalEventsLimit != null ? Math.min(pageSize, totalEventsLimit) : pageSize;
+
+		try {
+			do {
+				var requestBuilder = ListEventsRequest.builder()
+					.actorId(actorAndSession.actor())
+					.sessionId(actorAndSession.session())
+					.memoryId(memoryId)
+					.includePayloads(true)
+					.maxResults(requestPageSize);
+
+				if (nextToken != null) {
+					requestBuilder.nextToken(nextToken);
+				}
+
+				var listEventsResponse = client.listEvents(requestBuilder.build());
+				allEvents.addAll(listEventsResponse.events());
+				nextToken = listEventsResponse.nextToken();
+
+				if (totalEventsLimit != null && allEvents.size() >= totalEventsLimit) {
+					return allEvents.size() <= totalEventsLimit ? allEvents : allEvents.subList(0, totalEventsLimit);
+				}
+			}
+			while (nextToken != null);
+
+			return allEvents;
+		}
+		catch (SdkException e) {
+			logger.error("Failed to fetch events for actor: {}, session: {}", actorAndSession.actor(),
+					actorAndSession.session(), e);
+			throw new AgentCoreMemoryException("Failed to fetch events", e);
+		}
 	}
 
 	@Override
 	public void saveAll(String conversationId, List<Message> messages) {
-		var actorAndSession = actorAndSession(conversationId);
+		validateConversationId(conversationId);
+		if (messages == null || messages.isEmpty()) {
+			logger.debug("No messages to save for conversation: {}", conversationId);
+			return;
+		}
 
-		var payloads = messages.stream().map(message -> {
-			Role role;
+		logger.debug("Saving {} messages for conversation: {}", messages.size(), conversationId);
 
-			if (message instanceof AssistantMessage) {
-				role = Role.ASSISTANT;
-			}
-			else if (message instanceof UserMessage) {
-				role = Role.USER;
-			}
-			else {
-				throw new IllegalStateException("Unexpected value: " + message);
-			}
+		try {
+			var actorAndSession = actorAndSession(conversationId);
 
-			var content = Content.builder().text(message.getText()).build();
+			var payloads = messages.stream().map(message -> {
+				Role role;
 
-			var conversational = Conversational.builder().content(content).role(role).build();
+				if (message instanceof AssistantMessage) {
+					role = Role.ASSISTANT;
+				}
+				else if (message instanceof UserMessage) {
+					role = Role.USER;
+				}
+				else {
+					if (ignoreUnknownRoles) {
+						logger.warn("Ignoring unknown message type: {}", message.getClass().getSimpleName());
+						return null;
+					}
+					else {
+						throw new IllegalStateException(
+								"Unsupported message type: " + message.getClass().getSimpleName());
+					}
+				}
 
-			return PayloadType.builder().conversational(conversational).build();
-		}).toList();
+				var content = Content.builder().text(message.getText()).build();
+				var conversational = Conversational.builder().content(content).role(role).build();
+				return PayloadType.builder().conversational(conversational).build();
+			}).filter(Objects::nonNull).toList();
 
-		var createEventRequest = CreateEventRequest.builder()
-			.memoryId(memoryId) // todo: to config
-			.actorId(actorAndSession.actor())
-			.sessionId(actorAndSession.session())
-			.payload(payloads)
-			.eventTimestamp(Instant.now())
-			.build();
+			var createEventRequest = CreateEventRequest.builder()
+				.memoryId(memoryId)
+				.actorId(actorAndSession.actor())
+				.sessionId(actorAndSession.session())
+				.payload(payloads)
+				.eventTimestamp(Instant.now())
+				.build();
 
-		client.createEvent(createEventRequest);
+			client.createEvent(createEventRequest);
+			logger.debug("Successfully saved {} messages for conversation: {}", messages.size(), conversationId);
+		}
+		catch (SdkException e) {
+			logger.error("Failed to save messages for conversation: {}", conversationId, e);
+			throw new AgentCoreMemoryException("Failed to save messages for conversation: " + conversationId, e);
+		}
 	}
 
 	@Override
 	public void deleteByConversationId(String conversationId) {
-		var actorAndSession = actorAndSession(conversationId);
+		validateConversationId(conversationId);
+		logger.debug("Deleting conversation: {}", conversationId);
 
-		// todo: handle pagination
-		var listEventsRequest = ListEventsRequest.builder()
-			.memoryId(memoryId) // todo: to config
-			.actorId(actorAndSession.actor())
-			.sessionId(actorAndSession.session())
-			.includePayloads(false)
-			.maxResults(100) // todo: to config?
-			.build();
+		try {
+			var actorAndSession = actorAndSession(conversationId);
 
-		var events = client.listEvents(listEventsRequest).events();
+			var listEventsRequest = ListEventsRequest.builder()
+				.memoryId(memoryId)
+				.actorId(actorAndSession.actor())
+				.sessionId(actorAndSession.session())
+				.includePayloads(false)
+				.maxResults(pageSize)
+				.build();
 
-		events.forEach(event -> client.deleteEvent(DeleteEventRequest.builder()
-			.memoryId(memoryId)
-			.actorId(actorAndSession.actor())
-			.sessionId(actorAndSession.session())
-			.eventId(event.eventId())
-			.build()));
+			var events = client.listEvents(listEventsRequest).events();
+
+			events.forEach(event -> client.deleteEvent(DeleteEventRequest.builder()
+				.memoryId(memoryId)
+				.actorId(actorAndSession.actor())
+				.sessionId(actorAndSession.session())
+				.eventId(event.eventId())
+				.build()));
+
+			logger.debug("Successfully deleted {} events for conversation: {}", events.size(), conversationId);
+		}
+		catch (SdkException e) {
+			logger.error("Failed to delete conversation: {}", conversationId, e);
+			throw new AgentCoreMemoryException("Failed to delete conversation: " + conversationId, e);
+		}
 	}
 
 }

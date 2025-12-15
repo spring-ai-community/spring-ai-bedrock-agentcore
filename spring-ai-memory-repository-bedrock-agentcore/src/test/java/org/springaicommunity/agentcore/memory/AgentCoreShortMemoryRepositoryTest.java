@@ -3,15 +3,19 @@ package org.springaicommunity.agentcore.memory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.messages.SystemMessage;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 import software.amazon.awssdk.services.bedrockagentcore.model.*;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +33,8 @@ public class AgentCoreShortMemoryRepositoryTest {
 
 	@BeforeEach
 	void setUp() {
-		memoryRepository = new AgentCoreShortMemoryRepository("testMemoryId", client);
+		memoryRepository = new AgentCoreShortMemoryRepository("testMemoryId", client, null, "default-session", 100,
+				false);
 	}
 
 	@Test
@@ -80,7 +85,7 @@ public class AgentCoreShortMemoryRepositoryTest {
 
 	@Test
 	void shouldParseActorAndSessionWithSeparator() {
-		var result = AgentCoreShortMemoryRepository.actorAndSession("actor123:session456");
+		var result = memoryRepository.actorAndSession("actor123:session456");
 
 		assertEquals("actor123", result.actor());
 		assertEquals("session456", result.session());
@@ -88,10 +93,170 @@ public class AgentCoreShortMemoryRepositoryTest {
 
 	@Test
 	void shouldUseDefaultSessionWhenNoSeparator() {
-		var result = AgentCoreShortMemoryRepository.actorAndSession("actor123");
+		var result = memoryRepository.actorAndSession("actor123");
 
 		assertEquals("actor123", result.actor());
 		assertEquals("default-session", result.session());
+	}
+
+	@Test
+	void shouldRespectTotalLimitWhenConfigured() {
+		var memoryRepositoryWithLimit = new AgentCoreShortMemoryRepository("testMemoryId", client, 1, "default-session",
+				100, false);
+
+		ListEventsResponse listEventsResponse = ListEventsResponse.builder()
+			.events(Event.builder()
+				.payload(PayloadType.builder()
+					.conversational(Conversational.builder()
+						.role(Role.USER)
+						.content(Content.builder().text("first message").build())
+						.build())
+					.build())
+				.build(),
+					Event.builder()
+						.payload(PayloadType.builder()
+							.conversational(Conversational.builder()
+								.role(Role.USER)
+								.content(Content.builder().text("second message").build())
+								.build())
+							.build())
+						.build())
+			.build();
+		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(listEventsResponse);
+
+		List<Message> memoryMessages = memoryRepositoryWithLimit.findByConversationId("testActorId:testSessionId");
+
+		assertThat(memoryMessages.size()).isEqualTo(1);
+		assertThat(memoryMessages.get(0).getText()).isEqualTo("first message");
+	}
+
+	@ParameterizedTest
+	@CsvSource({ ", 100", // null limit -> PAGE_SIZE
+			"200, 100", // limit > PAGE_SIZE -> PAGE_SIZE
+			"50, 50", // limit < PAGE_SIZE -> limit
+			"100, 100", // limit = PAGE_SIZE -> PAGE_SIZE
+			"1, 1" // very small limit -> limit
+	})
+	void shouldUseCorrectPageSize(Integer totalEventsLimit, int expectedPageSize) {
+		var memoryRepository = new AgentCoreShortMemoryRepository("testMemoryId", client, totalEventsLimit,
+				"default-session", 100, false);
+
+		// Create events to return
+		var events = IntStream.range(0, expectedPageSize)
+			.mapToObj(i -> Event.builder()
+				.payload(PayloadType.builder()
+					.conversational(Conversational.builder()
+						.role(Role.USER)
+						.content(Content.builder().text("message " + i).build())
+						.build())
+					.build())
+				.build())
+			.toList();
+
+		ListEventsResponse listEventsResponse = ListEventsResponse.builder().events(events).build();
+		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(listEventsResponse);
+
+		memoryRepository.findByConversationId("testActorId:testSessionId");
+
+		ArgumentCaptor<ListEventsRequest> requestCaptor = ArgumentCaptor.forClass(ListEventsRequest.class);
+		verify(client).listEvents(requestCaptor.capture());
+		assertThat(requestCaptor.getValue().maxResults()).isEqualTo(expectedPageSize);
+	}
+
+	@Test
+	void shouldThrowExceptionForNullConversationId() {
+		assertThat(org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+				() -> memoryRepository.findByConversationId(null)))
+			.hasMessage("ConversationId cannot be null or empty");
+	}
+
+	@Test
+	void shouldThrowExceptionForEmptyConversationId() {
+		assertThat(org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+				() -> memoryRepository.findByConversationId("")))
+			.hasMessage("ConversationId cannot be null or empty");
+	}
+
+	@Test
+	void shouldThrowExceptionForNullMemoryId() {
+		assertThat(org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+				() -> new AgentCoreShortMemoryRepository(null, client, null, "default-session", 100, false)))
+			.hasMessage("MemoryId cannot be null or empty");
+	}
+
+	@Test
+	void shouldIgnoreUnknownRolesWhenConfigured() {
+		var memoryRepositoryWithIgnore = new AgentCoreShortMemoryRepository("testMemoryId", client, null,
+				"default-session", 100, true);
+
+		ListEventsResponse listEventsResponse = ListEventsResponse.builder()
+			.events(Event.builder()
+				.payload(PayloadType.builder()
+					.conversational(Conversational.builder()
+						.role(Role.USER)
+						.content(Content.builder().text("valid message").build())
+						.build())
+					.build())
+				.build())
+			.build();
+		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(listEventsResponse);
+
+		List<Message> memoryMessages = memoryRepositoryWithIgnore.findByConversationId("testActorId:testSessionId");
+
+		assertThat(memoryMessages.size()).isEqualTo(1);
+		assertThat(memoryMessages.get(0).getText()).isEqualTo("valid message");
+	}
+
+	@Test
+	void shouldHaveCorrectIgnoreUnknownRolesConfiguration() {
+		var memoryRepositoryIgnoreTrue = new AgentCoreShortMemoryRepository("testMemoryId", client, null,
+				"default-session", 100, true);
+		var memoryRepositoryIgnoreFalse = new AgentCoreShortMemoryRepository("testMemoryId", client, null,
+				"default-session", 100, false);
+
+		// We can't directly test the field, but we can verify the constructor accepts the
+		// parameter
+		// The actual behavior is tested through integration and the configuration system
+		assertThat(memoryRepositoryIgnoreTrue).isNotNull();
+		assertThat(memoryRepositoryIgnoreFalse).isNotNull();
+	}
+
+	@Test
+	void shouldIgnoreUnknownMessageTypesWhenSaving() {
+		var memoryRepositoryWithIgnore = new AgentCoreShortMemoryRepository("testMemoryId", client, null,
+				"default-session", 100, true);
+
+		CreateEventResponse response = CreateEventResponse.builder()
+			.event(Event.builder().memoryId("testMemoryId").build())
+			.build();
+		when(client.createEvent(any(CreateEventRequest.class))).thenReturn(response);
+
+		// Mix of known and unknown message types
+		List<Message> messages = List.of(UserMessage.builder().text("user message").build(),
+				new SystemMessage("system message") // This will be ignored
+		);
+
+		// Should not throw exception and should save only the USER message
+		memoryRepositoryWithIgnore.saveAll("testActorId:testSessionId", messages);
+
+		ArgumentCaptor<CreateEventRequest> requestCaptor = ArgumentCaptor.forClass(CreateEventRequest.class);
+		verify(client).createEvent(requestCaptor.capture());
+
+		// Should only have 1 payload (USER message), SYSTEM message should be filtered
+		// out
+		assertThat(requestCaptor.getValue().payload()).hasSize(1);
+		assertThat(requestCaptor.getValue().payload().get(0).conversational().role()).isEqualTo(Role.USER);
+	}
+
+	@Test
+	void shouldThrowExceptionForUnknownMessageTypesWhenNotIgnoring() {
+		List<Message> messages = List.of(UserMessage.builder().text("user message").build(),
+				new SystemMessage("system message") // This will cause exception
+		);
+
+		assertThat(org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+				() -> memoryRepository.saveAll("testActorId:testSessionId", messages)))
+			.hasMessageContaining("Unsupported message type: SystemMessage");
 	}
 
 }

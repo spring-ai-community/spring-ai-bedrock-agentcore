@@ -20,7 +20,9 @@ public class AgentCoreShortMemoryRepositoryAutoConfiguration {
 	@ConditionalOnMissingBean
 	AgentCoreShortMemoryRepository memoryRepository(AgentCoreShortMemoryRepositoryConfiguration configuration,
 			BedrockAgentCoreClient client) {
-		return new AgentCoreShortMemoryRepository(configuration.getMemoryId(), client);
+		return new AgentCoreShortMemoryRepository(configuration.getMemoryId(), client,
+				configuration.getTotalEventsLimit(), configuration.getDefaultSession(), configuration.getPageSize(),
+				configuration.isIgnoreUnknownRoles());
 	}
 
 }

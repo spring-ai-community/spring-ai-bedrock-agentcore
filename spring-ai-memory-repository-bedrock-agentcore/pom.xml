@@ -106,7 +106,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>bedrockagentcorecontrol</artifactId>
-            <version>2.40.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

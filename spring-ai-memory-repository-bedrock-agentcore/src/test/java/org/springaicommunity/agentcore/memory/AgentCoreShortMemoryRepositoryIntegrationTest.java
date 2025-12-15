@@ -29,11 +29,8 @@ public class AgentCoreShortMemoryRepositoryIntegrationTest {
 	static BedrockAgentCoreControlClient client = BedrockAgentCoreControlClient.create();
 
 	@BeforeAll
-	public static void setup() throws InterruptedException {
-		var createMemoryRequest = CreateMemoryRequest.builder()
-			.name("test_memory_1")
-			.eventExpiryDuration(100) // todo: file bug for this taking an integer
-			.build();
+	public static void setup() {
+		var createMemoryRequest = CreateMemoryRequest.builder().name("test_memory_1").eventExpiryDuration(100).build();
 		var createMemoryResponse = client.createMemory(createMemoryRequest);
 
 		memoryId = createMemoryResponse.memory().id();
@@ -57,7 +54,8 @@ public class AgentCoreShortMemoryRepositoryIntegrationTest {
 	@Test
 	public void createAndFetchMemories() {
 		var bedrockAgentCoreClient = BedrockAgentCoreClient.create();
-		var agentCoreMemoryRepository = new AgentCoreShortMemoryRepository(memoryId, bedrockAgentCoreClient);
+		var agentCoreMemoryRepository = new AgentCoreShortMemoryRepository(memoryId, bedrockAgentCoreClient, null,
+				"default-session", 100, false);
 		List<Message> messages = List.of(UserMessage.builder().text("hello").build());
 
 		agentCoreMemoryRepository.saveAll("testActorId/testSessionId", messages);
@@ -70,7 +68,8 @@ public class AgentCoreShortMemoryRepositoryIntegrationTest {
 	@Test
 	public void testChatMemory() {
 		var bedrockAgentCoreClient = BedrockAgentCoreClient.create();
-		var agentCoreMemoryRepository = new AgentCoreShortMemoryRepository(memoryId, bedrockAgentCoreClient);
+		var agentCoreMemoryRepository = new AgentCoreShortMemoryRepository(memoryId, bedrockAgentCoreClient, null,
+				"default-session", 100, false);
 
 		var chatMemory = MessageWindowChatMemory.builder()
 			.chatMemoryRepository(agentCoreMemoryRepository)
