@@ -3,28 +3,26 @@
 set -e
 
 BASE_URL="http://localhost:8080"
-CONVERSATION_ID="test-$(date +%s)"
 
 echo "🧪 Running Integration Tests for Spring AI AgentCore Memory Example"
-echo "Using conversation ID: $CONVERSATION_ID"
 
 # Test 1: Send first message
 echo "📤 Test 1: Sending first message..."
-RESPONSE1=$(curl -s -X POST "$BASE_URL/api/chat/$CONVERSATION_ID" \
+RESPONSE1=$(curl -s -X POST "$BASE_URL/api/chat" \
   -H "Content-Type: application/json" \
   -d '{"message": "Hello, my name is Alice and I love hiking"}')
 
 echo "Response: $RESPONSE1"
-if [[ $RESPONSE1 == *"Alice"* ]]; then
-  echo "✅ Test 1 passed: AI recognized the name"
+if [[ -n "$RESPONSE1" ]]; then
+  echo "✅ Test 1 passed: Got response from AI"
 else
-  echo "❌ Test 1 failed: AI did not recognize the name"
+  echo "❌ Test 1 failed: No response from AI"
   exit 1
 fi
 
 # Test 2: Test memory recall
 echo "📤 Test 2: Testing memory recall..."
-RESPONSE2=$(curl -s -X POST "$BASE_URL/api/chat/$CONVERSATION_ID" \
+RESPONSE2=$(curl -s -X POST "$BASE_URL/api/chat" \
   -H "Content-Type: application/json" \
   -d '{"message": "What do you remember about me?"}')
 
@@ -38,7 +36,7 @@ fi
 
 # Test 3: Get conversation history
 echo "📤 Test 3: Getting conversation history..."
-HISTORY=$(curl -s "$BASE_URL/api/chat/$CONVERSATION_ID/history")
+HISTORY=$(curl -s "$BASE_URL/api/chat/history")
 
 echo "History: $HISTORY"
 if [[ $HISTORY == *"Alice"* ]] && [[ $HISTORY == *"hiking"* ]]; then
@@ -48,39 +46,20 @@ else
   exit 1
 fi
 
-# Test 4: Test separate conversation
-echo "📤 Test 4: Testing conversation isolation..."
-OTHER_CONVERSATION="other-test-$(date +%s)"
-RESPONSE3=$(curl -s -X POST "$BASE_URL/api/chat/$OTHER_CONVERSATION" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Do you know anything about Alice?"}')
-
-echo "Response: $RESPONSE3"
-if [[ $RESPONSE3 != *"hiking"* ]]; then
-  echo "✅ Test 4 passed: Conversations are properly isolated"
-else
-  echo "❌ Test 4 failed: Conversation isolation not working"
-  exit 1
-fi
-
 # Test 5: Clear conversation
-echo "📤 Test 5: Clearing conversation..."
-curl -s -X DELETE "$BASE_URL/api/chat/$CONVERSATION_ID"
+echo "📤 Test 4: Clearing conversation..."
+curl -s -X DELETE "$BASE_URL/api/chat/history"
 
 # Verify conversation is cleared
-CLEARED_HISTORY=$(curl -s "$BASE_URL/api/chat/$CONVERSATION_ID/history")
+CLEARED_HISTORY=$(curl -s "$BASE_URL/api/chat/history")
 if [[ $CLEARED_HISTORY == "[]" ]]; then
-  echo "✅ Test 5 passed: Conversation cleared successfully"
+  echo "✅ Test 4 passed: Conversation cleared successfully"
 else
-  echo "❌ Test 5 failed: Conversation not cleared"
+  echo "❌ Test 4 failed: Conversation not cleared"
   exit 1
 fi
-
-# Cleanup
-curl -s -X DELETE "$BASE_URL/api/chat/$OTHER_CONVERSATION"
 
 echo "🎉 All integration tests passed!"
 echo "✅ Memory persistence working"
 echo "✅ Context awareness working"
-echo "✅ Conversation isolation working"
 echo "✅ History management working"

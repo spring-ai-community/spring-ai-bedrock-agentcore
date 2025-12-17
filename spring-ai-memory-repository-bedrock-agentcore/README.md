@@ -344,6 +344,24 @@ Required IAM permissions for the application:
 }
 ```
 
+## Testing
+
+### Unit Tests
+Run unit tests (excludes integration tests by default):
+```bash
+mvn test
+```
+
+### Integration Tests
+Integration tests require AWS credentials and create real AgentCore Memory resources.
+
+Run integration tests only:
+```bash
+mvn test -Pintegration
+```
+
+**Note:** Integration tests may take 2-3 minutes and will create/delete AWS resources.
+
 ## License
 
 This project is licensed under the Apache License 2.0.

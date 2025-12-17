@@ -8,30 +8,21 @@ public class AgentCoreShortMemoryRepositoryConfigurationTest {
 
 	@Test
 	void shouldHaveDefaultValues() {
-		var config = new AgentCoreShortMemoryRepositoryConfiguration();
+		var config = new AgentCoreShortMemoryRepositoryConfiguration(null, null, "default-session", 100, false);
 
-		assertThat(config.getDefaultSession()).isEqualTo("default-session");
-		assertThat(config.getPageSize()).isEqualTo(100);
-		assertThat(config.isIgnoreUnknownRoles()).isFalse();
-		assertThat(config.getTotalEventsLimit()).isNull();
-		assertThat(config.getMemoryId()).isNull();
+		assertThat(config.defaultSession()).isEqualTo("default-session");
+		assertThat(config.pageSize()).isEqualTo(100);
 	}
 
 	@Test
-	void shouldSetAndGetAllProperties() {
-		var config = new AgentCoreShortMemoryRepositoryConfiguration();
+	void shouldCreateWithAllProperties() {
+		var config = new AgentCoreShortMemoryRepositoryConfiguration("test-memory-id", 500, "custom-session", 50, true);
 
-		config.setMemoryId("test-memory-id");
-		config.setTotalEventsLimit(500);
-		config.setDefaultSession("custom-session");
-		config.setPageSize(50);
-		config.setIgnoreUnknownRoles(true);
-
-		assertThat(config.getMemoryId()).isEqualTo("test-memory-id");
-		assertThat(config.getTotalEventsLimit()).isEqualTo(500);
-		assertThat(config.getDefaultSession()).isEqualTo("custom-session");
-		assertThat(config.getPageSize()).isEqualTo(50);
-		assertThat(config.isIgnoreUnknownRoles()).isTrue();
+		assertThat(config.memoryId()).isEqualTo("test-memory-id");
+		assertThat(config.totalEventsLimit()).isEqualTo(500);
+		assertThat(config.defaultSession()).isEqualTo("custom-session");
+		assertThat(config.pageSize()).isEqualTo(50);
+		assertThat(config.ignoreUnknownRoles()).isTrue();
 	}
 
 }

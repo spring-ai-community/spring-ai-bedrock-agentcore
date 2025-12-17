@@ -17,7 +17,8 @@
 package org.springaicommunity.agentcore.memory;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -26,6 +27,7 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,15 +38,17 @@ import software.amazon.awssdk.services.bedrockagentcorecontrol.model.DeleteMemor
 import software.amazon.awssdk.services.bedrockagentcorecontrol.model.GetMemoryRequest;
 import software.amazon.awssdk.services.bedrockagentcorecontrol.model.MemoryStatus;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 
-@Disabled("Running the test requires access to an AWS account. It creates Agent Core memory and may take about 2–3 minutes")
-@SpringBootTest(classes = EndToEndIntegrationTest.TestApp.class,
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+@Tag("integration")
+@DisplayName("End-to-End Spring AI Chat Client Test - requires AWS account and creates AgentCore memory (2-3 minutes)")
+@SpringBootTest(classes = EndToEndSpringAIChatClientIntegrationTest.TestApp.class,
 		properties = { "spring.ai.bedrock.converse.chat.options.model=global.amazon.nova-2-lite-v1:0" })
-@ContextConfiguration(initializers = EndToEndIntegrationTest.MemoryInitializer.class)
-class EndToEndIntegrationTest {
+@ContextConfiguration(initializers = EndToEndSpringAIChatClientIntegrationTest.MemoryInitializer.class)
+class EndToEndSpringAIChatClientIntegrationTest {
 
 	static String memoryId;
 	static BedrockAgentCoreControlClient client = BedrockAgentCoreControlClient.create();
@@ -78,6 +82,7 @@ class EndToEndIntegrationTest {
 	}
 
 	@SpringBootApplication(scanBasePackages = "org.springaicommunity.agentcore.memory")
+	@EnableConfigurationProperties(AgentCoreShortMemoryRepositoryConfiguration.class)
 	static class TestApp {
 
 	}
@@ -107,13 +112,6 @@ class EndToEndIntegrationTest {
 		var conversationId = "testActorId/testSessionId";
 
 		chatMemory.clear(conversationId);
-
-		/*
-		 * List<Message> messages = List.of(
-		 * UserMessage.builder().text("my name is James").build() );
-		 *
-		 * chatMemory.add(conversationId, messages);
-		 */
 
 		var chatClient = ChatClient.builder(chatModel)
 			.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())

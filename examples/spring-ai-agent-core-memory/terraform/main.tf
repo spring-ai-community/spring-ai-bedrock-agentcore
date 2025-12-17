@@ -39,6 +39,25 @@ resource "null_resource" "agentcore_memory" {
         --event-expiry-duration 365 \
         --region "${var.aws_region}" \
         --output json > memory_output.json
+      
+      MEMORY_ID=$(cat memory_output.json | jq -r '.memory.id')
+      echo "Waiting for memory $MEMORY_ID to become ACTIVE..."
+      
+      for i in {1..60}; do
+        STATUS=$(aws bedrock-agentcore-control get-memory \
+          --memory-id "$MEMORY_ID" \
+          --region "${var.aws_region}" \
+          --query 'memory.status' \
+          --output text)
+        
+        if [ "$STATUS" = "ACTIVE" ]; then
+          echo "Memory is ACTIVE"
+          break
+        fi
+        
+        echo "Status: $STATUS, waiting... ($i/60)"
+        sleep 5
+      done
     EOT
   }
 

@@ -18,4 +18,4 @@ Content-Type: application/json
 GET http://localhost:8080/api/chat/history
 
 ### Clear history
-DELETE http://localhost:8080/api/chat/clear
+DELETE http://localhost:8080/api/chat/history

@@ -76,7 +76,7 @@
         <maven-site-plugin.version>4.0.0-M13</maven-site-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <spring-javaformat-maven-plugin.version>0.0.43</spring-javaformat-maven-plugin.version>
-        <spring-ai.version>1.1.1</spring-ai.version>
+        <spring-ai.version>1.1.2</spring-ai.version>
         <awssdk.version>2.40.3</awssdk.version>
     </properties>
 
@@ -126,6 +126,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -180,6 +181,7 @@
                     <trimStackTrace>false</trimStackTrace>
                     <reportFormat>plain</reportFormat>
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
+                    <excludedGroups>integration</excludedGroups>
                 </configuration>
             </plugin>
             <plugin>
@@ -251,6 +253,20 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>integration</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration combine.self="override">
+                            <groups>integration</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>javadoc</id>
             <activation>

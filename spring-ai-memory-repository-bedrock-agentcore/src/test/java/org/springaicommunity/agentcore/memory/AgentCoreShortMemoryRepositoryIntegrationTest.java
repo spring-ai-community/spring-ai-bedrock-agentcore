@@ -1,9 +1,6 @@
 package org.springaicommunity.agentcore.memory;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -14,14 +11,15 @@ import software.amazon.awssdk.services.bedrockagentcorecontrol.model.DeleteMemor
 import software.amazon.awssdk.services.bedrockagentcorecontrol.model.GetMemoryRequest;
 import software.amazon.awssdk.services.bedrockagentcorecontrol.model.MemoryStatus;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import java.time.Duration;
 
-@Disabled("Running the test requires access to an AWS account. It creates Agent Core memory and may take about 2–3 minutes")
+@Tag("integration")
+@DisplayName("Integration test - requires AWS account and creates AgentCore memory (2-3 minutes)")
 public class AgentCoreShortMemoryRepositoryIntegrationTest {
 
 	static String memoryId;

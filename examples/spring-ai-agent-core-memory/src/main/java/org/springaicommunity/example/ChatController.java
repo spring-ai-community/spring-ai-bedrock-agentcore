@@ -43,7 +43,7 @@ public class ChatController {
 		return chatMemory.get(CONVERSATION_ID);
 	}
 
-	@DeleteMapping("/api/chat/clear")
+	@DeleteMapping("/api/chat/history")
 	public void clearHistory() {
 		chatMemory.clear(CONVERSATION_ID);
 	}
