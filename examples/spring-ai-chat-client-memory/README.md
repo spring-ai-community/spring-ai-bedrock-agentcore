@@ -1,6 +1,6 @@
 # Spring AI AgentCore Memory Example
 
-A complete example demonstrating AWS Bedrock AgentCore Memory integration with Spring AI for persistent conversation history.
+A complete example demonstrating AWS Bedrock AgentCore Short-Term Memory integration with Spring AI for persistent conversation history.
 
 ## Prerequisites
 
@@ -38,6 +38,7 @@ A complete example demonstrating AWS Bedrock AgentCore Memory integration with S
                        ┌──────────────────┐
                        │ AWS Bedrock      │
                        │ AgentCore Memory │
+                       │ (Short-Term)     │
                        └──────────────────┘
 ```
 
@@ -49,7 +50,7 @@ A complete example demonstrating AWS Bedrock AgentCore Memory integration with S
 ./deploy.sh
 ```
 
-This creates an AgentCore Memory and waits for it to become ACTIVE (takes ~2-3 minutes).
+This creates an AgentCore short-term memory and waits for it to become ACTIVE (takes ~2-3 minutes).
 
 ### 2. Export Memory ID
 
