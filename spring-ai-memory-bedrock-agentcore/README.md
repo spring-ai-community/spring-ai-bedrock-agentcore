@@ -1,6 +1,6 @@
 # Spring AI Bedrock AgentCore Memory Repository
 
-A Spring Boot starter that provides seamless integration between Spring AI and AWS Bedrock AgentCore Memory for persistent conversation storage.
+A Spring Boot starter that provides seamless integration between Spring AI and Amazon Bedrock AgentCore Memory for persistent conversation storage.
 
 ## Features
 
@@ -11,6 +11,12 @@ A Spring Boot starter that provides seamless integration between Spring AI and A
 - **Error Handling**: Robust error handling with configurable unknown role behavior
 - **Logging**: Comprehensive debug and error logging
 - **Production Ready**: Input validation, memory optimization, and proper exception handling
+
+## Memory Types
+
+**Current Implementation**: This starter currently implements **short-term memory** functionality using AWS Bedrock AgentCore Memory.
+
+**Future Roadmap**: Long-term memory implementations are planned for future releases, including episodic, semantic, procedural, and other memory subtypes.
 
 ## Quick Start
 

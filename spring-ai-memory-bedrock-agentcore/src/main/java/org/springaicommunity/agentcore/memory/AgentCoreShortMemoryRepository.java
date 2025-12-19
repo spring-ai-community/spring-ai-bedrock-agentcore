@@ -43,27 +43,6 @@ public class AgentCoreShortMemoryRepository implements ChatMemoryRepository {
 	record ActorAndSession(String actor, String session) {
 	}
 
-	private String validateMemoryId(String memoryId) {
-		if (memoryId == null || memoryId.trim().isEmpty()) {
-			throw new IllegalArgumentException("MemoryId cannot be null or empty");
-		}
-		return memoryId;
-	}
-
-	private void validateConversationId(String conversationId) {
-		if (conversationId == null || conversationId.trim().isEmpty()) {
-			throw new IllegalArgumentException("ConversationId cannot be null or empty");
-		}
-	}
-
-	ActorAndSession actorAndSession(String conversationId) {
-		if (conversationId.contains(":")) {
-			var parts = conversationId.split(":");
-			return new ActorAndSession(parts[0], parts[1]);
-		}
-		return new ActorAndSession(conversationId, defaultSession);
-	}
-
 	@Override
 	public List<String> findConversationIds() {
 		throw new UnsupportedOperationException();
@@ -108,7 +87,7 @@ public class AgentCoreShortMemoryRepository implements ChatMemoryRepository {
 
 	private List<Event> fetchAllEvents(ActorAndSession actorAndSession) {
 		var allEvents = new java.util.ArrayList<Event>();
-		String nextToken = null;
+		var nextToken = (String) null;
 		int requestPageSize = totalEventsLimit != null ? Math.min(pageSize, totalEventsLimit) : pageSize;
 
 		try {
@@ -228,6 +207,27 @@ public class AgentCoreShortMemoryRepository implements ChatMemoryRepository {
 		catch (SdkException e) {
 			logger.error("Failed to delete conversation: {}", conversationId, e);
 			throw new AgentCoreMemoryException("Failed to delete conversation: " + conversationId, e);
+		}
+	}
+
+	ActorAndSession actorAndSession(String conversationId) {
+		if (conversationId.contains(":")) {
+			var parts = conversationId.split(":");
+			return new ActorAndSession(parts[0], parts[1]);
+		}
+		return new ActorAndSession(conversationId, defaultSession);
+	}
+
+	private String validateMemoryId(String memoryId) {
+		if (memoryId == null || memoryId.trim().isEmpty()) {
+			throw new IllegalArgumentException("MemoryId cannot be null or empty");
+		}
+		return memoryId;
+	}
+
+	private void validateConversationId(String conversationId) {
+		if (conversationId == null || conversationId.trim().isEmpty()) {
+			throw new IllegalArgumentException("ConversationId cannot be null or empty");
 		}
 	}
 

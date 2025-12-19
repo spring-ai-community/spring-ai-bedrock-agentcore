@@ -8,20 +8,21 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.messages.SystemMessage;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 import software.amazon.awssdk.services.bedrockagentcore.model.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AgentCoreShortMemoryRepositoryTest {
@@ -41,46 +42,95 @@ public class AgentCoreShortMemoryRepositoryTest {
 	public void createAndFetchMemories() {
 		List<Message> messages = List.of(UserMessage.builder().text("hello").build());
 
-		CreateEventResponse response = CreateEventResponse.builder()
-			.event(Event.builder()
-				.memoryId("testMemoryId")
-				.actorId("testActorId")
-				.sessionId("testSessionId")
-				.eventId("testEventId")
-				.payload(PayloadType.builder()
-					.conversational(Conversational.builder()
-						.role(Role.USER)
-						.content(Content.builder().text("test prompt").build())
-						.build())
-					.build())
-				.build())
-			.build();
+		CreateEventResponse response = CreateEventResponse.builder().event(buildTestEvent()).build();
 		when(client.createEvent(any(CreateEventRequest.class))).thenReturn(response);
 
-		ListEventsResponse listEventsResponse = ListEventsResponse.builder()
-			.events(Event.builder()
-				.payload(PayloadType.builder()
-					.conversational(Conversational.builder()
-						.role(Role.USER)
-						.content(Content.builder().text("test prompt").build())
-						.build())
-					.build())
-				.build())
-			.build();
+		ListEventsResponse listEventsResponse = ListEventsResponse.builder().events(buildTestEvent()).build();
 		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(listEventsResponse);
 
-		memoryRepository.saveAll("testActorId:testSessionId", messages);
+		var conversationId = "testActorId:testSessionId";
+		memoryRepository.saveAll(conversationId, messages);
 
-		List<Message> memoryMessages = memoryRepository.findByConversationId("testActorId:testSessionId");
+		List<Message> memoryMessages = memoryRepository.findByConversationId(conversationId);
 
 		assertThat(memoryMessages.size()).isEqualTo(1);
-		assertThat(memoryMessages.get(0).getText()).isEqualTo("test prompt");
+		assertThat(memoryMessages.get(0).getText()).isEqualTo("test message");
+
+		ArgumentCaptor<CreateEventRequest> createEventsRequestArgumentCaptor = ArgumentCaptor
+			.forClass(CreateEventRequest.class);
+		verify(client, times(1)).createEvent(createEventsRequestArgumentCaptor.capture());
+		assertThat(createEventsRequestArgumentCaptor.getValue().actorId()).isEqualTo("testActorId");
+		assertThat(createEventsRequestArgumentCaptor.getValue().sessionId()).isEqualTo("testSessionId");
+		assertThat(createEventsRequestArgumentCaptor.getValue().memoryId()).isEqualTo("testMemoryId");
+		assertThat(createEventsRequestArgumentCaptor.getValue().payload().size()).isEqualTo(1);
+		assertThat(createEventsRequestArgumentCaptor.getValue().payload())
+			.allMatch(p -> p.conversational().content().text().contains("hello"));
 
 		ArgumentCaptor<ListEventsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListEventsRequest.class);
 		verify(client).listEvents(requestArgumentCaptor.capture());
 		assertThat(requestArgumentCaptor.getValue().actorId()).isEqualTo("testActorId");
 		assertThat(requestArgumentCaptor.getValue().sessionId()).isEqualTo("testSessionId");
 		assertThat(requestArgumentCaptor.getValue().memoryId()).isEqualTo("testMemoryId");
+	}
+
+	@Test
+	public void testChatMemory() {
+		CreateEventResponse response = CreateEventResponse.builder().event(buildTestEvent()).build();
+		when(client.createEvent(any(CreateEventRequest.class))).thenReturn(response);
+
+		ListEventsResponse listEventsResponse = ListEventsResponse.builder()
+			.events(buildTestEvent(), buildTestEvent(), buildTestEvent())
+			.build();
+		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(listEventsResponse);
+
+		var chatMemory = MessageWindowChatMemory.builder()
+			.chatMemoryRepository(memoryRepository)
+			.maxMessages(10)
+			.build();
+
+		var messages = new ArrayList<Message>();
+		for (int i = 0; i < 20; i++) {
+			messages.add(UserMessage.builder().text("test message " + i).build());
+		}
+
+		var conversationId = "testActorId:testSessionId";
+		chatMemory.add(conversationId, messages);
+
+		var memories = chatMemory.get(conversationId);
+		assertThat(memories.size()).isEqualTo(3);
+		assertThat(memories).allMatch(m -> m.getText().equals("test message"));
+
+		ArgumentCaptor<CreateEventRequest> createEventsRequestArgumentCaptor = ArgumentCaptor
+			.forClass(CreateEventRequest.class);
+		verify(client, times(1)).createEvent(createEventsRequestArgumentCaptor.capture());
+		assertThat(createEventsRequestArgumentCaptor.getValue().actorId()).isEqualTo("testActorId");
+		assertThat(createEventsRequestArgumentCaptor.getValue().sessionId()).isEqualTo("testSessionId");
+		assertThat(createEventsRequestArgumentCaptor.getValue().memoryId()).isEqualTo("testMemoryId");
+		assertThat(createEventsRequestArgumentCaptor.getValue().payload().size()).isEqualTo(10);
+		assertThat(createEventsRequestArgumentCaptor.getValue().payload())
+			.allMatch(p -> p.conversational().content().text().contains("test message"));
+
+		ArgumentCaptor<ListEventsRequest> listEventsRequestArgumentCaptor = ArgumentCaptor
+			.forClass(ListEventsRequest.class);
+		verify(client, times(2)).listEvents(listEventsRequestArgumentCaptor.capture());
+		assertThat(listEventsRequestArgumentCaptor.getValue().actorId()).isEqualTo("testActorId");
+		assertThat(listEventsRequestArgumentCaptor.getValue().sessionId()).isEqualTo("testSessionId");
+		assertThat(listEventsRequestArgumentCaptor.getValue().memoryId()).isEqualTo("testMemoryId");
+	}
+
+	private Event buildTestEvent() {
+		return Event.builder()
+			.memoryId("testMemoryId")
+			.actorId("testActorId")
+			.sessionId("testSessionId")
+			.eventId("testEventId")
+			.payload(PayloadType.builder()
+				.conversational(Conversational.builder()
+					.role(Role.USER)
+					.content(Content.builder().text("test message").build())
+					.build())
+				.build())
+			.build();
 	}
 
 	@Test

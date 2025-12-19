@@ -12,12 +12,12 @@
     </parent>
 
     <groupId>org.springaicommunity.examples</groupId>
-    <artifactId>spring-ai-agent-core-memory</artifactId>
+    <artifactId>spring-ai-chat-client-memory</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Spring AI AgentCore Memory Example</name>
-    <description>Example showing Spring AI with AgentCore Memory integration</description>
+    <name>Spring AI ChatClient with Bedrock AgentCore Memory Example</name>
+    <description>Example showing Spring AI ChatClient with Bedrock AgentCore Memory integration</description>
 
     <properties>
         <java.version>17</java.version>
@@ -33,7 +33,7 @@
 
         <dependency>
             <groupId>org.springaicommunity</groupId>
-            <artifactId>spring-ai-model-chat-memory-repository-bedrock-agentcore</artifactId>
+            <artifactId>spring-ai-memory-bedrock-agentcore</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 

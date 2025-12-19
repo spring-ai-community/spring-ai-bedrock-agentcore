@@ -97,7 +97,7 @@ locals {
   memory_name = local.memory_data.memory.name
 }
 
-# Output the memory ID for use in Spring application
+# Output the memory details
 output "memory_id" {
   description = "The ID of the created AgentCore Memory"
   value       = local.memory_id
