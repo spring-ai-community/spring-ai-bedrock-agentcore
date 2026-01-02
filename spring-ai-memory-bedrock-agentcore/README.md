@@ -25,8 +25,8 @@ A Spring Boot starter that provides seamless integration between Spring AI and A
 ```xml
 <dependency>
     <groupId>org.springaicommunity</groupId>
-    <artifactId>spring-ai-model-chat-memory-repository-bedrock-agentcore</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <artifactId>spring-ai-memory-bedrock-agentcore</artifactId>
+    <version>1.0.0-RC2</version>
 </dependency>
 ```
 
